@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { useQuery, useConvexAuth } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
+import Link from "next/link";
+import { motion } from "framer-motion";
 
 function formatDate(timestamp: number) {
   return new Date(timestamp).toLocaleString(undefined, {
@@ -12,6 +14,20 @@ function formatDate(timestamp: number) {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function formatRelativeTime(timestamp: number) {
+  const now = Date.now();
+  const diff = now - timestamp;
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7) return `${days}d ago`;
+  return formatDate(timestamp);
 }
 
 function formatDuration(startedAt: number, endedAt?: number) {
@@ -48,38 +64,74 @@ export default function CallsPage() {
     }));
   }, [sessions]);
 
+  const activeCount = rows.filter(r => r.status !== "ended").length;
+  const completedCount = rows.filter(r => r.status === "ended").length;
+
   if (isLoading || sessions === undefined) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-sm text-zinc-500">Loading calls...</p>
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-zinc-500">Loading calls...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold text-zinc-900 font-display">
-          Calls
-        </h1>
-        <p className="text-sm text-zinc-500 mt-1">
-          Voice session history across your agents.
-        </p>
+    <div className="space-y-8 pb-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+        <div>
+          <p className="text-sm font-medium text-cyan-600 mb-1">Call History</p>
+          <h1 className="text-3xl font-bold text-zinc-900 font-display">
+            Voice Sessions
+          </h1>
+          <p className="text-zinc-500 mt-1">
+            View and review all voice conversations with your AI receptionist.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          {activeCount > 0 && (
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 text-sm font-medium text-amber-700">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              {activeCount} Active
+            </span>
+          )}
+          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-50 border border-cyan-200 text-sm font-medium text-cyan-700">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
+            {completedCount} Completed
+          </span>
+        </div>
       </div>
 
       {rows.length === 0 ? (
-        <div className="surface-card border-2 border-dashed border-[var(--border)] p-10 text-center">
-          <p className="text-zinc-600 font-medium mb-1">No calls yet</p>
-          <p className="text-sm text-zinc-500">
-            Start a voice chat to generate call history.
+        <div className="bg-white rounded-2xl border-2 border-dashed border-zinc-200 p-12 text-center">
+          <div className="w-20 h-20 mx-auto rounded-2xl bg-zinc-100 flex items-center justify-center mb-4">
+            <svg className="w-10 h-10 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-zinc-900 mb-2">No calls yet</h3>
+          <p className="text-zinc-500 mb-6 max-w-sm mx-auto">
+            Start a voice chat with your AI receptionist to see call history here.
           </p>
+          <Link
+            href="/dashboard/agents"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium bg-zinc-900 text-white hover:bg-zinc-800 transition-all"
+          >
+            View Your Agents
+          </Link>
         </div>
       ) : (
-        <div className="space-y-3">
-          {rows.map((row) => (
+        <div className="space-y-4">
+          {rows.map((row, index) => (
             <CallRow
               key={row.id}
               row={row}
+              index={index}
               isExpanded={Boolean(expanded[row.id])}
               onToggle={() =>
                 setExpanded((prev) => ({
@@ -97,6 +149,7 @@ export default function CallsPage() {
 
 function CallRow({
   row,
+  index,
   isExpanded,
   onToggle,
 }: {
@@ -109,6 +162,7 @@ function CallRow({
     endedAt?: number;
     summary?: string;
   };
+  index: number;
   isExpanded: boolean;
   onToggle: () => void;
 }) {
@@ -118,108 +172,117 @@ function CallRow({
   );
 
   return (
-    <div className="surface-card p-5 flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="text-sm text-zinc-500">Agent</div>
-          <div className="text-lg font-semibold text-zinc-900 font-display">
-            {row.agentName}
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      className="bg-white rounded-2xl border border-zinc-200 overflow-hidden hover:border-zinc-300 hover:shadow-md transition-all"
+    >
+      <div className="p-6 space-y-5">
+        {/* Header Row */}
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-semibold ${
+              row.status === "ended"
+                ? 'bg-cyan-100 text-cyan-700'
+                : 'bg-amber-100 text-amber-700'
+            }`}>
+              {row.agentName.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h3 className="font-semibold text-zinc-900 text-lg">{row.agentName}</h3>
+              {row.businessName && (
+                <p className="text-sm text-zinc-500">{row.businessName}</p>
+              )}
+            </div>
           </div>
-          {row.businessName && (
-            <div className="text-xs text-zinc-400">{row.businessName}</div>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <span
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+          <div className="flex items-center gap-3">
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
               row.status === "ended"
                 ? "bg-emerald-50 text-emerald-700"
                 : "bg-amber-50 text-amber-700"
-            }`}
+            }`}>
+              <span className={`h-2 w-2 rounded-full ${
+                row.status === "ended" ? "bg-emerald-500" : "bg-amber-500 animate-pulse"
+              }`} />
+              {row.status === "ended" ? "Completed" : "Active"}
+            </span>
+            <span className="px-3 py-1.5 rounded-full bg-zinc-100 text-xs font-medium text-zinc-600">
+              {formatDuration(row.startedAt, row.endedAt)}
+            </span>
+          </div>
+        </div>
+
+        {/* Info Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-zinc-100">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-zinc-400 mb-1">Started</p>
+            <p className="text-sm text-zinc-700">{formatRelativeTime(row.startedAt)}</p>
+          </div>
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-zinc-400 mb-1">Ended</p>
+            <p className="text-sm text-zinc-700">{row.endedAt ? formatRelativeTime(row.endedAt) : "In progress"}</p>
+          </div>
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-zinc-400 mb-1">Summary</p>
+            <p className="text-sm text-zinc-600 line-clamp-2">{row.summary ?? "No summary yet"}</p>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center justify-between pt-4 border-t border-zinc-100">
+          <button
+            onClick={onToggle}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-zinc-100 text-zinc-700 hover:bg-zinc-200 transition-colors"
           >
-            <span
-              className={`h-1.5 w-1.5 rounded-full ${
-                row.status === "ended" ? "bg-emerald-500" : "bg-amber-500"
-              }`}
-            />
-            {row.status === "ended" ? "Completed" : "Active"}
-          </span>
-          <span className="text-xs text-zinc-500">
-            {formatDuration(row.startedAt, row.endedAt)}
-          </span>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm text-zinc-600">
-        <div>
-          <div className="text-xs uppercase tracking-wide text-zinc-400">
-            Started
-          </div>
-          <div>{formatDate(row.startedAt)}</div>
-        </div>
-        <div>
-          <div className="text-xs uppercase tracking-wide text-zinc-400">
-            Ended
-          </div>
-          <div>{row.endedAt ? formatDate(row.endedAt) : "In progress"}</div>
-        </div>
-        <div>
-          <div className="text-xs uppercase tracking-wide text-zinc-400">
-            Summary
-          </div>
-          <div className="text-zinc-500 whitespace-pre-line">
-            {row.summary ?? "—"}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <button
-          onClick={onToggle}
-          className="rounded-full px-4 py-2 text-sm font-medium btn-outline transition-colors"
-        >
-          {isExpanded ? "Hide Transcript" : "View Transcript"}
-        </button>
-        {row.summary ? (
+            <svg className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+            {isExpanded ? "Hide Transcript" : "View Transcript"}
+          </button>
           <span className="text-xs text-zinc-400">
-            GPT-4o-mini summary
+            {row.summary ? "AI-generated summary" : "Summary pending"}
           </span>
-        ) : (
-          <span className="text-xs text-zinc-400">Summary pending</span>
-        )}
+        </div>
       </div>
 
+      {/* Transcript Panel */}
       {isExpanded && (
-        <div className="surface-muted p-4 space-y-3 max-h-80 overflow-y-auto">
-          {messages === undefined ? (
-            <p className="text-sm text-zinc-400">Loading transcript...</p>
-          ) : messages.length === 0 ? (
-            <p className="text-sm text-zinc-400">No transcript found.</p>
-          ) : (
-            messages.map((msg, index) => (
-              <div
-                key={`${row.id}-${index}`}
-                className={`flex ${
-                  msg.role === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-2 ${
-                    msg.role === "user"
-                      ? "bg-white border border-[var(--border)]"
-                      : "bg-white border border-[var(--border)]"
-                  }`}
-                >
-                  <div className="text-xs font-medium text-zinc-500 mb-1">
-                    {msg.role === "user" ? "Caller" : "Agent"}
-                  </div>
-                  <div className="text-sm text-zinc-800">{msg.content}</div>
-                </div>
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          className="border-t border-zinc-200 bg-zinc-50 p-6"
+        >
+          <div className="space-y-3 max-h-80 overflow-y-auto">
+            {messages === undefined ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-6 h-6 border-2 border-zinc-300 border-t-transparent rounded-full animate-spin" />
               </div>
-            ))
-          )}
-        </div>
+            ) : messages.length === 0 ? (
+              <p className="text-sm text-zinc-500 text-center py-8">No transcript available.</p>
+            ) : (
+              messages.map((msg, idx) => (
+                <div
+                  key={`${row.id}-${idx}`}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                    msg.role === "user"
+                      ? "bg-zinc-200 text-zinc-800"
+                      : "bg-white border border-zinc-200 text-zinc-800"
+                  }`}>
+                    <div className="text-xs font-medium text-zinc-500 mb-1">
+                      {msg.role === "user" ? "Caller" : "Agent"}
+                    </div>
+                    <div className="text-sm">{msg.content}</div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }
