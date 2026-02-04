@@ -4,6 +4,9 @@ import { fetchQuery } from "convex/nextjs";
 import { api } from "@convex/_generated/api";
 import Stripe from "stripe";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
 export async function POST(req: NextRequest) {

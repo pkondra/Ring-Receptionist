@@ -271,34 +271,6 @@ const trustBadges = [
   { icon: "✨", label: "Full Setup Included" },
 ];
 
-// Decorative tree/nature icons for the background
-const TreeIcon = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor" opacity="0.12">
-    <path d="M12 2L8 8h2v3H8l-4 6h5v5h6v-5h5l-4-6h-2V8h2L12 2z" />
-  </svg>
-);
-
-const LeafIcon = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor" opacity="0.12">
-    <path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z" />
-  </svg>
-);
-
-const SawIcon = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor" opacity="0.10">
-    <circle cx="12" cy="12" r="10" />
-    <path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="currentColor" strokeWidth="1" fill="none" />
-  </svg>
-);
-
-const StumpIcon = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor" opacity="0.10">
-    <ellipse cx="12" cy="18" rx="8" ry="3" />
-    <path d="M4 18V14c0-2 3.58-4 8-4s8 2 8 4v4" />
-    <ellipse cx="12" cy="10" rx="8" ry="3" />
-  </svg>
-);
-
 // Animation variants
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -334,27 +306,12 @@ export default function Home() {
 
       <main>
         {/* Hero Section */}
-        <section className="relative px-6 pt-16 pb-20 md:pt-24 md:pb-28 overflow-hidden">
-          {/* Background decorative icons */}
-          <div className="absolute inset-0 pointer-events-none">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1, delay: 0.5 }}
-            >
-              <TreeIcon className="absolute w-16 h-16 text-emerald-700 top-20 left-[5%]" />
-              <LeafIcon className="absolute w-12 h-12 text-emerald-600 top-32 left-[15%] rotate-45" />
-              <SawIcon className="absolute w-14 h-14 text-emerald-700 top-48 left-[8%]" />
-              <StumpIcon className="absolute w-10 h-10 text-emerald-600 top-64 left-[12%]" />
-              <LeafIcon className="absolute w-8 h-8 text-emerald-700 top-80 left-[6%] -rotate-12" />
-
-              <TreeIcon className="absolute w-14 h-14 text-emerald-700 top-16 right-[8%]" />
-              <LeafIcon className="absolute w-10 h-10 text-emerald-600 top-28 right-[15%] -rotate-45" />
-              <SawIcon className="absolute w-12 h-12 text-emerald-700 top-44 right-[5%]" />
-              <StumpIcon className="absolute w-14 h-14 text-emerald-600 top-56 right-[12%]" />
-              <TreeIcon className="absolute w-10 h-10 text-emerald-700 top-72 right-[7%]" />
-              <LeafIcon className="absolute w-16 h-16 text-emerald-600 top-20 right-[25%] rotate-12" />
-            </motion.div>
+        <section className="relative px-6 pt-20 pb-24 md:pt-32 md:pb-36 overflow-hidden">
+          {/* Subtle background pattern */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-emerald-100/30 blur-3xl" />
+            <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] rounded-full bg-emerald-50/50 blur-3xl" />
+            <div className="absolute -bottom-20 -right-20 w-[400px] h-[400px] rounded-full bg-amber-50/30 blur-3xl" />
           </div>
 
           <div className="relative mx-auto max-w-4xl text-center">
@@ -363,9 +320,9 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm"
+              className="inline-flex items-center gap-2.5 rounded-full border border-emerald-300/60 bg-white/80 backdrop-blur-sm px-5 py-2.5 text-sm font-medium text-zinc-800 shadow-sm"
             >
-              <span className="text-lg">🌲</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               Built for Tree Care Professionals
             </motion.span>
 
@@ -374,11 +331,11 @@ export default function Home() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="mt-8 text-5xl md:text-6xl lg:text-7xl font-semibold text-zinc-900 font-display leading-tight"
+              className="mt-10 text-5xl md:text-6xl lg:text-7xl font-semibold text-zinc-900 font-display leading-[1.1] tracking-tight"
             >
-              Your Calls Answered
+              Never Miss Another
               <br />
-              <span className="text-emerald-600">Day and Night</span>
+              <span className="text-emerald-600">Emergency Call</span>
             </motion.h1>
 
             {/* Subtitle */}
@@ -386,9 +343,9 @@ export default function Home() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="mt-6 text-lg md:text-xl text-zinc-600 max-w-2xl mx-auto"
+              className="mt-8 text-lg md:text-xl text-zinc-600 max-w-2xl mx-auto leading-relaxed"
             >
-              The <strong>AI receptionist built for arborists</strong> answers every ring, qualifies each lead, handles emergencies, and lets you focus on what you do best—caring for trees.
+              The AI receptionist that answers every call, qualifies leads, and handles emergencies—so you can focus on the job, not the phone.
             </motion.p>
 
             {/* Feature badges */}
@@ -396,19 +353,25 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-zinc-600"
+              className="mt-10 flex flex-wrap justify-center gap-6 text-sm text-zinc-600"
             >
-              <span className="inline-flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="inline-flex items-center gap-2.5 bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full border border-zinc-200/60">
+                <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
                 Natural conversation
               </span>
-              <span className="inline-flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="inline-flex items-center gap-2.5 bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full border border-zinc-200/60">
+                <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
                 Direct calendar booking
               </span>
-              <span className="inline-flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                Zero spam calls
+              <span className="inline-flex items-center gap-2.5 bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full border border-zinc-200/60">
+                <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Blocks spam calls
               </span>
             </motion.div>
 
@@ -417,55 +380,67 @@ export default function Home() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
-              className="mt-8 flex flex-col sm:flex-row gap-4 justify-center"
+              className="mt-10 flex flex-col sm:flex-row gap-4 justify-center"
             >
               <SignedOut>
                 <Link
                   href="/get-started"
-                  className="inline-flex items-center justify-center rounded-full px-8 py-3.5 text-base font-semibold btn-primary transition-transform hover:scale-105"
+                  className="group inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-base font-semibold bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-900/20 transition-all hover:shadow-xl hover:shadow-zinc-900/25"
                 >
-                  Start Your Free Trial
+                  Start Free Trial
+                  <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
                 </Link>
                 <Link
                   href="/pricing"
-                  className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-3.5 text-base font-semibold bg-white border border-zinc-200 text-zinc-900 hover:bg-zinc-50 shadow-sm transition-transform hover:scale-105"
+                  className="inline-flex items-center justify-center gap-2.5 rounded-full px-8 py-4 text-base font-semibold bg-white border border-zinc-200 text-zinc-800 hover:bg-zinc-50 hover:border-zinc-300 shadow-sm transition-all"
                 >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                   </svg>
-                  Listen to a Demo
+                  Hear a Demo Call
                 </Link>
               </SignedOut>
               <SignedIn>
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center justify-center rounded-full px-8 py-3.5 text-base font-semibold btn-primary transition-transform hover:scale-105"
+                  className="group inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-base font-semibold bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-900/20 transition-all hover:shadow-xl hover:shadow-zinc-900/25"
                 >
                   Open Dashboard
+                  <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
                 </Link>
                 <Link
                   href="/pricing"
-                  className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-3.5 text-base font-semibold bg-white border border-zinc-200 text-zinc-900 hover:bg-zinc-50 shadow-sm transition-transform hover:scale-105"
+                  className="inline-flex items-center justify-center gap-2.5 rounded-full px-8 py-4 text-base font-semibold bg-white border border-zinc-200 text-zinc-800 hover:bg-zinc-50 hover:border-zinc-300 shadow-sm transition-all"
                 >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                   </svg>
-                  Listen to a Demo
+                  Hear a Demo Call
                 </Link>
               </SignedIn>
             </motion.div>
 
-            {/* Revenue highlight */}
+            {/* Social proof */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.5 }}
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-800"
+              className="mt-12 flex flex-col items-center gap-4"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-              Capture 3+ extra jobs weekly — that's significant monthly revenue
+              <div className="flex -space-x-3">
+                {['MC', 'RO', 'SB', 'JT', 'AL'].map((initials, i) => (
+                  <div key={initials} className="w-10 h-10 rounded-full bg-emerald-100 border-2 border-white flex items-center justify-center text-xs font-semibold text-emerald-700">
+                    {initials}
+                  </div>
+                ))}
+              </div>
+              <p className="text-sm text-zinc-600">
+                <span className="font-semibold text-zinc-900">500+</span> tree care professionals trust us with their calls
+              </p>
             </motion.div>
 
             {/* Trust badges */}
@@ -473,11 +448,11 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.6 }}
-              className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-zinc-500"
+              className="mt-10 pt-8 border-t border-zinc-200/60 flex flex-wrap justify-center gap-x-8 gap-y-3 text-xs text-zinc-500"
             >
               {trustBadges.map((badge) => (
-                <span key={badge.label} className="inline-flex items-center gap-1.5">
-                  <span>{badge.icon}</span>
+                <span key={badge.label} className="inline-flex items-center gap-2">
+                  <span className="text-base">{badge.icon}</span>
                   {badge.label}
                 </span>
               ))}
@@ -486,7 +461,7 @@ export default function Home() {
         </section>
 
         {/* Stats Section */}
-        <section id="stats-section" className="bg-[#1a1a1a] py-14 md:py-20">
+        <section id="stats-section" className="bg-zinc-900 py-16 md:py-24">
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -494,19 +469,21 @@ export default function Home() {
             variants={staggerContainer}
             className="mx-auto max-w-6xl px-6"
           >
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <motion.p variants={fadeIn} className="text-center text-emerald-400 text-sm font-medium tracking-wide uppercase mb-12">
+              The Problem You Already Know
+            </motion.p>
+            <div className="grid gap-px sm:grid-cols-2 lg:grid-cols-4 bg-zinc-800 rounded-2xl overflow-hidden">
               {stats.map((stat, index) => (
                 <motion.div
                   key={stat.value}
                   variants={fadeInUp}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="text-center py-6 px-4"
+                  className="bg-zinc-900 text-center py-10 px-6"
                 >
-                  <div className="text-5xl md:text-6xl font-bold text-white font-display">
+                  <div className="text-4xl md:text-5xl font-bold text-white font-display tracking-tight">
                     {stat.value}
                   </div>
-                  <div className="w-12 h-0.5 bg-emerald-500 mx-auto mt-4 mb-3" />
-                  <div className="text-sm text-zinc-400 leading-relaxed">{stat.label}</div>
+                  <div className="text-sm text-zinc-400 leading-relaxed mt-3">{stat.label}</div>
                 </motion.div>
               ))}
             </div>
@@ -522,13 +499,19 @@ export default function Home() {
               viewport={{ once: true, margin: "-100px" }}
               variants={fadeInUp}
               transition={{ duration: 0.6 }}
-              className="text-center max-w-3xl mx-auto"
+              className="text-center max-w-2xl mx-auto"
             >
-              <h2 className="text-4xl md:text-5xl font-semibold font-display">
-                The Hidden Cost of Missed Calls
+              <span className="inline-flex items-center gap-2 text-sm font-medium text-rose-600 mb-4">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                The Real Cost of Missed Calls
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold font-display leading-tight">
+                Every Missed Call Is Revenue<br className="hidden md:block" /> Lost to Your Competition
               </h2>
-              <p className="mt-4 text-lg text-zinc-600">
-                Every unanswered ring is a potential customer choosing your competitor instead.
+              <p className="mt-5 text-lg text-zinc-600">
+                When your phone rings and no one picks up, that customer doesn't wait—they call the next name on the list.
               </p>
             </motion.div>
             <motion.div
@@ -536,24 +519,26 @@ export default function Home() {
               whileInView="visible"
               viewport={{ once: true, margin: "-100px" }}
               variants={staggerContainer}
-              className="mt-12 grid gap-5 md:grid-cols-2"
+              className="mt-14 grid gap-6 md:grid-cols-2"
             >
               {painPoints.map((point, index) => (
                 <motion.div
                   key={point.title}
                   variants={fadeInUp}
                   transition={{ duration: 0.5 }}
-                  whileHover={{ y: -4 }}
-                  className="surface-card p-6 flex gap-4"
+                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                  className="group bg-white rounded-2xl border border-zinc-200/80 p-6 shadow-sm hover:shadow-md hover:border-zinc-300/80 transition-all"
                 >
-                  <div className={`flex-shrink-0 w-12 h-12 rounded-xl ${point.iconBg} ${point.iconColor} flex items-center justify-center`}>
-                    {point.icon}
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-zinc-900">
-                      {point.title}
-                    </h3>
-                    <p className="mt-2 text-sm text-zinc-600">{point.body}</p>
+                  <div className="flex gap-5">
+                    <div className={`flex-shrink-0 w-12 h-12 rounded-xl ${point.iconBg} ${point.iconColor} flex items-center justify-center transition-transform group-hover:scale-110`}>
+                      {point.icon}
+                    </div>
+                    <div className="pt-1">
+                      <h3 className="text-lg font-semibold text-zinc-900">
+                        {point.title}
+                      </h3>
+                      <p className="mt-2 text-sm text-zinc-600 leading-relaxed">{point.body}</p>
+                    </div>
                   </div>
                 </motion.div>
               ))}
@@ -562,7 +547,7 @@ export default function Home() {
         </section>
 
         {/* What Our Service Does Section */}
-        <section id="features-section" className="px-6 py-20 md:py-28 bg-[var(--surface)]">
+        <section id="features-section" className="px-6 py-20 md:py-28 bg-zinc-50">
           <div className="mx-auto max-w-6xl">
             <motion.div
               initial="hidden"
@@ -570,34 +555,43 @@ export default function Home() {
               viewport={{ once: true, margin: "-100px" }}
               variants={fadeInUp}
               transition={{ duration: 0.6 }}
-              className="text-center max-w-3xl mx-auto"
+              className="text-center max-w-2xl mx-auto"
             >
-              <h2 className="text-4xl md:text-5xl font-semibold font-display">
-                How We Handle Your Calls
+              <span className="inline-flex items-center gap-2 text-sm font-medium text-emerald-600 mb-4">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Powerful Features
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold font-display leading-tight">
+                Everything Your Phone System Should Do
               </h2>
+              <p className="mt-5 text-lg text-zinc-600">
+                Built specifically for tree care businesses with features that actually matter.
+              </p>
             </motion.div>
             <motion.div
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: "-100px" }}
               variants={staggerContainer}
-              className="mt-12 grid gap-8 md:grid-cols-3"
+              className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
             >
               {capabilities.map((cap, index) => (
                 <motion.div
                   key={cap.title}
-                  variants={scaleIn}
+                  variants={fadeInUp}
                   transition={{ duration: 0.5 }}
-                  whileHover={{ scale: 1.02 }}
-                  className="text-center"
+                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                  className="group bg-white rounded-2xl border border-zinc-200/80 p-6 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all"
                 >
-                  <div className="mx-auto w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4 transition-all group-hover:bg-emerald-100 group-hover:scale-110">
                     {cap.icon}
                   </div>
-                  <h3 className="mt-4 text-lg font-semibold text-zinc-900">
+                  <h3 className="text-lg font-semibold text-zinc-900">
                     {cap.title}
                   </h3>
-                  <p className="mt-2 text-sm text-zinc-600">{cap.body}</p>
+                  <p className="mt-2 text-sm text-zinc-600 leading-relaxed">{cap.body}</p>
                 </motion.div>
               ))}
             </motion.div>
@@ -613,28 +607,34 @@ export default function Home() {
               viewport={{ once: true, margin: "-100px" }}
               variants={fadeInUp}
               transition={{ duration: 0.6 }}
-              className="text-center max-w-3xl mx-auto"
+              className="text-center max-w-2xl mx-auto"
             >
-              <h2 className="text-4xl md:text-5xl font-semibold font-display">
-                The Transformation
+              <span className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 mb-4">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+                See the Difference
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold font-display leading-tight">
+                What Changes When Every<br className="hidden md:block" /> Call Gets Answered
               </h2>
-              <p className="mt-4 text-lg text-zinc-600">
-                What changes when every call gets answered professionally
-              </p>
             </motion.div>
-            <div className="mt-12 grid gap-6 lg:grid-cols-2">
+            <div className="mt-14 grid gap-8 lg:grid-cols-2">
               {/* Before */}
               <motion.div
                 initial={{ opacity: 0, x: -30 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.6 }}
-                className="surface-card p-8 relative"
+                className="bg-white rounded-2xl border border-zinc-200 p-8 relative shadow-sm"
               >
-                <span className="absolute -top-3 left-6 inline-flex rounded-full bg-rose-500 text-white text-xs font-bold uppercase tracking-wide px-4 py-1.5">
-                  Before
-                </span>
-                <div className="mt-4 space-y-5">
+                <div className="absolute -top-4 left-6 inline-flex items-center gap-2 rounded-full bg-zinc-900 text-white text-xs font-bold uppercase tracking-wider px-4 py-2">
+                  <svg className="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Without Us
+                </div>
+                <div className="mt-4 space-y-6">
                   {beforeList.map((item, index) => (
                     <motion.div
                       key={item.title}
@@ -644,14 +644,14 @@ export default function Home() {
                       transition={{ duration: 0.4, delay: index * 0.1 }}
                       className="flex gap-4"
                     >
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center">
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mt-0.5">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       </div>
                       <div>
                         <h4 className="font-semibold text-zinc-900">{item.title}</h4>
-                        <p className="mt-1 text-sm text-zinc-600">{item.body}</p>
+                        <p className="mt-1.5 text-sm text-zinc-600 leading-relaxed">{item.body}</p>
                       </div>
                     </motion.div>
                   ))}
@@ -664,12 +664,15 @@ export default function Home() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.6 }}
-                className="surface-card p-8 relative border-emerald-200"
+                className="bg-white rounded-2xl border-2 border-emerald-200 p-8 relative shadow-sm ring-1 ring-emerald-100"
               >
-                <span className="absolute -top-3 left-6 inline-flex rounded-full bg-emerald-600 text-white text-xs font-bold uppercase tracking-wide px-4 py-1.5">
-                  After
-                </span>
-                <div className="mt-4 space-y-5">
+                <div className="absolute -top-4 left-6 inline-flex items-center gap-2 rounded-full bg-emerald-600 text-white text-xs font-bold uppercase tracking-wider px-4 py-2">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                  With Us
+                </div>
+                <div className="mt-4 space-y-6">
                   {afterList.map((item, index) => (
                     <motion.div
                       key={item.title}
@@ -679,14 +682,14 @@ export default function Home() {
                       transition={{ duration: 0.4, delay: index * 0.1 }}
                       className="flex gap-4"
                     >
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mt-0.5">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
                       <div>
                         <h4 className="font-semibold text-zinc-900">{item.title}</h4>
-                        <p className="mt-1 text-sm text-zinc-600">{item.body}</p>
+                        <p className="mt-1.5 text-sm text-zinc-600 leading-relaxed">{item.body}</p>
                       </div>
                     </motion.div>
                   ))}
@@ -697,7 +700,7 @@ export default function Home() {
         </section>
 
         {/* Comparison Table Section */}
-        <section id="compare-section" className="px-6 py-20 md:py-28 bg-[var(--surface)]">
+        <section id="compare-section" className="px-6 py-20 md:py-28 bg-zinc-50">
           <div className="mx-auto max-w-5xl">
             <motion.div
               initial="hidden"
@@ -705,36 +708,39 @@ export default function Home() {
               viewport={{ once: true, margin: "-100px" }}
               variants={fadeInUp}
               transition={{ duration: 0.6 }}
-              className="text-center max-w-3xl mx-auto"
+              className="text-center max-w-2xl mx-auto"
             >
-              <h2 className="text-4xl md:text-5xl font-semibold font-display">
-                How We Compare
+              <span className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 mb-4">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Compare Your Options
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold font-display leading-tight">
+                How We Stack Up Against<br className="hidden md:block" /> Traditional Solutions
               </h2>
-              <p className="mt-4 text-lg text-zinc-600">
-                See how AI-powered answering measures up to traditional options
-              </p>
             </motion.div>
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="mt-12 overflow-hidden rounded-2xl border border-[var(--border)] bg-white"
+              className="mt-14 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm"
             >
               {/* Table Header */}
-              <div className="grid grid-cols-4 text-sm bg-zinc-50 border-b border-[var(--border)]">
+              <div className="grid grid-cols-4 text-sm bg-zinc-50 border-b border-zinc-200">
                 <div className="p-5 font-semibold text-zinc-700"></div>
-                <div className="p-5 text-center">
-                  <div className="text-xs text-zinc-500">In-House</div>
-                  <div className="font-semibold text-zinc-900">Receptionist</div>
+                <div className="p-5 text-center border-l border-zinc-200">
+                  <div className="text-xs text-zinc-500 uppercase tracking-wider">In-House</div>
+                  <div className="font-semibold text-zinc-900 mt-1">Receptionist</div>
                 </div>
-                <div className="p-5 text-center">
-                  <div className="text-xs text-zinc-500">Outsourced</div>
-                  <div className="font-semibold text-zinc-900">Call Center</div>
+                <div className="p-5 text-center border-l border-zinc-200">
+                  <div className="text-xs text-zinc-500 uppercase tracking-wider">Outsourced</div>
+                  <div className="font-semibold text-zinc-900 mt-1">Call Center</div>
                 </div>
-                <div className="p-5 text-center bg-emerald-50 border-l-2 border-emerald-500">
-                  <div className="text-xs text-emerald-600 font-medium">Tree Removal</div>
-                  <div className="font-semibold text-zinc-900">Receptionist</div>
+                <div className="p-5 text-center bg-emerald-600 text-white">
+                  <div className="text-xs text-emerald-100 uppercase tracking-wider">AI-Powered</div>
+                  <div className="font-semibold mt-1">Tree Receptionist</div>
                 </div>
               </div>
               {/* Table Body */}
@@ -745,29 +751,41 @@ export default function Home() {
                   whileInView={{ opacity: 1 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.3, delay: idx * 0.05 }}
-                  className={`grid grid-cols-4 text-sm ${idx !== compareRows.length - 1 ? 'border-b border-[var(--border)]' : ''}`}
+                  className={`grid grid-cols-4 text-sm ${idx !== compareRows.length - 1 ? 'border-b border-zinc-100' : ''} hover:bg-zinc-50/50 transition-colors`}
                 >
-                  <div className="p-5 font-medium text-zinc-700">{row.label}</div>
-                  <div className="p-5 text-center text-zinc-500">
+                  <div className="p-5 font-medium text-zinc-800">{row.label}</div>
+                  <div className="p-5 text-center text-zinc-500 border-l border-zinc-100">
                     {typeof row.fullTime === 'boolean' ? (
                       row.fullTime ? (
-                        <span className="text-emerald-600">✓</span>
+                        <span className="inline-flex w-6 h-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                        </span>
                       ) : (
-                        <span className="text-rose-500">✗</span>
+                        <span className="inline-flex w-6 h-6 items-center justify-center rounded-full bg-rose-100 text-rose-500">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </span>
                       )
                     ) : row.fullTime}
                   </div>
-                  <div className="p-5 text-center text-zinc-500">
+                  <div className="p-5 text-center text-zinc-500 border-l border-zinc-100">
                     {typeof row.callCenter === 'boolean' ? (
                       row.callCenter ? (
-                        <span className="text-emerald-600">✓</span>
+                        <span className="inline-flex w-6 h-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                        </span>
                       ) : (
-                        <span className="text-rose-500">✗</span>
+                        <span className="inline-flex w-6 h-6 items-center justify-center rounded-full bg-rose-100 text-rose-500">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </span>
                       )
                     ) : row.callCenter}
                   </div>
-                  <div className="p-5 text-center bg-emerald-50/50 border-l-2 border-emerald-500 font-semibold text-emerald-700">
-                    {row.oursIcon && <span className="text-emerald-600 mr-1">✓</span>}
+                  <div className="p-5 text-center bg-emerald-50/70 border-l border-emerald-100 font-medium text-emerald-800">
+                    {row.oursIcon && (
+                      <span className="inline-flex w-5 h-5 items-center justify-center rounded-full bg-emerald-600 text-white mr-2">
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                      </span>
+                    )}
                     {row.ours}
                   </div>
                 </motion.div>
@@ -785,10 +803,16 @@ export default function Home() {
               viewport={{ once: true, margin: "-100px" }}
               variants={fadeInUp}
               transition={{ duration: 0.6 }}
-              className="text-center max-w-3xl mx-auto"
+              className="text-center max-w-2xl mx-auto"
             >
-              <h2 className="text-4xl md:text-5xl font-semibold font-display">
-                Trusted by Arborists
+              <span className="inline-flex items-center gap-2 text-sm font-medium text-amber-600 mb-4">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                Customer Stories
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold font-display leading-tight">
+                Trusted by Tree Care<br className="hidden md:block" /> Professionals Nationwide
               </h2>
             </motion.div>
             <motion.div
@@ -796,25 +820,30 @@ export default function Home() {
               whileInView="visible"
               viewport={{ once: true, margin: "-100px" }}
               variants={staggerContainer}
-              className="mt-12 grid gap-6 md:grid-cols-3"
+              className="mt-14 grid gap-6 md:grid-cols-3"
             >
               {testimonials.map((t, index) => (
                 <motion.div
                   key={t.name}
                   variants={fadeInUp}
-                  whileHover={{ y: -6 }}
-                  transition={{ duration: 0.3 }}
-                  className="surface-card p-6"
+                  whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                  className="bg-white rounded-2xl border border-zinc-200/80 p-7 shadow-sm hover:shadow-md hover:border-zinc-300/80 transition-all"
                 >
-                  <div className="text-amber-400 text-lg tracking-tight">★★★★★</div>
-                  <p className="mt-4 text-sm text-zinc-600 leading-relaxed">"{t.quote}"</p>
-                  <div className="mt-6 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-semibold">
+                  <div className="flex gap-0.5">
+                    {[...Array(5)].map((_, i) => (
+                      <svg key={i} className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                      </svg>
+                    ))}
+                  </div>
+                  <p className="mt-5 text-sm text-zinc-600 leading-relaxed">"{t.quote}"</p>
+                  <div className="mt-6 pt-5 border-t border-zinc-100 flex items-center gap-4">
+                    <div className="w-11 h-11 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">
                       {t.avatar}
                     </div>
                     <div>
-                      <div className="text-sm font-semibold text-zinc-900">{t.name}</div>
-                      <div className="text-xs text-zinc-500">{t.meta}</div>
+                      <div className="font-semibold text-zinc-900">{t.name}</div>
+                      <div className="text-xs text-zinc-500 mt-0.5">{t.meta}</div>
                     </div>
                   </div>
                 </motion.div>
@@ -824,7 +853,7 @@ export default function Home() {
         </section>
 
         {/* FAQ Section */}
-        <section id="faq-section" className="px-6 py-20 md:py-28 bg-[var(--surface)]">
+        <section id="faq-section" className="px-6 py-20 md:py-28 bg-zinc-50">
           <div className="mx-auto max-w-3xl">
             <motion.div
               initial="hidden"
@@ -834,8 +863,14 @@ export default function Home() {
               transition={{ duration: 0.6 }}
               className="text-center"
             >
-              <h2 className="text-4xl md:text-5xl font-semibold font-display">
-                Common Questions
+              <span className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 mb-4">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                FAQ
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold font-display leading-tight">
+                Questions? We Have Answers
               </h2>
               <p className="mt-4 text-lg text-zinc-600">
                 Everything you need to know before getting started
@@ -846,29 +881,28 @@ export default function Home() {
               whileInView="visible"
               viewport={{ once: true, margin: "-100px" }}
               variants={staggerContainer}
-              className="mt-12 space-y-4"
+              className="mt-12 space-y-3"
             >
               {faqs.map((faq, idx) => (
                 <motion.div
                   key={faq.q}
                   variants={fadeInUp}
-                  className="surface-card overflow-hidden"
+                  className="bg-white rounded-xl border border-zinc-200/80 overflow-hidden shadow-sm"
                 >
                   <button
                     onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                    className="w-full px-6 py-5 flex items-center justify-between text-left"
+                    className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-zinc-50/50 transition-colors"
                   >
                     <span className="font-semibold text-zinc-900 pr-4">{faq.q}</span>
-                    <motion.svg
-                      animate={{ rotate: openFaq === idx ? 180 : 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="w-5 h-5 text-zinc-400 flex-shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+                    <motion.div
+                      animate={{ rotate: openFaq === idx ? 45 : 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center flex-shrink-0"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </motion.svg>
+                      <svg className="w-4 h-4 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v12m6-6H6" />
+                      </svg>
+                    </motion.div>
                   </button>
                   <AnimatePresence>
                     {openFaq === idx && (
@@ -879,7 +913,7 @@ export default function Home() {
                         transition={{ duration: 0.3 }}
                         className="overflow-hidden"
                       >
-                        <div className="px-6 pb-5 text-sm text-zinc-600 leading-relaxed">
+                        <div className="px-6 pb-6 text-sm text-zinc-600 leading-relaxed border-t border-zinc-100 pt-4">
                           {faq.a}
                         </div>
                       </motion.div>
@@ -892,155 +926,193 @@ export default function Home() {
         </section>
 
         {/* CTA Section */}
-        <section className="px-6 py-20 md:py-28">
+        <section className="px-6 py-20 md:py-28 relative overflow-hidden">
+          {/* Background */}
+          <div className="absolute inset-0 bg-zinc-900" />
+          <div className="absolute inset-0">
+            <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full bg-emerald-600/10 blur-3xl" />
+            <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full bg-emerald-600/10 blur-3xl" />
+          </div>
+
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.7 }}
-            className="mx-auto max-w-4xl text-center"
+            className="relative mx-auto max-w-3xl text-center"
           >
-            <h2 className="text-4xl md:text-5xl font-semibold font-display">
-              Stop Losing Leads Tonight
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-400 mb-6">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              Start capturing leads today
+            </span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold font-display text-white leading-tight">
+              Ready to Never Miss<br className="hidden md:block" /> Another Call?
             </h2>
-            <p className="mt-4 text-lg text-zinc-600 max-w-2xl mx-auto">
-              Join tree care professionals who capture every opportunity. Your 7-day trial is completely free—no payment info required.
+            <p className="mt-5 text-lg text-zinc-400 max-w-xl mx-auto">
+              Join 500+ tree care professionals who capture every opportunity. Start your free trial today—no credit card required.
             </p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="mt-8 flex flex-col sm:flex-row gap-4 justify-center"
+              className="mt-10 flex flex-col sm:flex-row gap-4 justify-center"
             >
               <SignedOut>
                 <Link
                   href="/get-started"
-                  className="inline-flex items-center justify-center rounded-full px-8 py-4 text-base font-semibold btn-primary transition-transform hover:scale-105"
+                  className="group inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-base font-semibold bg-white text-zinc-900 hover:bg-zinc-100 shadow-lg transition-all"
                 >
-                  Begin Free Trial
+                  Start Free Trial
+                  <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
                 </Link>
                 <Link
                   href="/pricing"
-                  className="inline-flex items-center justify-center rounded-full px-8 py-4 text-base font-semibold bg-white border border-zinc-200 text-zinc-900 hover:bg-zinc-50 shadow-sm transition-transform hover:scale-105"
+                  className="inline-flex items-center justify-center rounded-full px-8 py-4 text-base font-semibold border border-zinc-700 text-white hover:bg-zinc-800 hover:border-zinc-600 transition-all"
                 >
-                  See Pricing Plans
+                  View Pricing
                 </Link>
               </SignedOut>
               <SignedIn>
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center justify-center rounded-full px-8 py-4 text-base font-semibold btn-primary transition-transform hover:scale-105"
+                  className="group inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-base font-semibold bg-white text-zinc-900 hover:bg-zinc-100 shadow-lg transition-all"
                 >
                   Open Dashboard
+                  <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
                 </Link>
                 <Link
                   href="/pricing"
-                  className="inline-flex items-center justify-center rounded-full px-8 py-4 text-base font-semibold bg-white border border-zinc-200 text-zinc-900 hover:bg-zinc-50 shadow-sm transition-transform hover:scale-105"
+                  className="inline-flex items-center justify-center rounded-full px-8 py-4 text-base font-semibold border border-zinc-700 text-white hover:bg-zinc-800 hover:border-zinc-600 transition-all"
                 >
-                  See Pricing Plans
+                  View Pricing
                 </Link>
               </SignedIn>
             </motion.div>
-            <motion.p
+            <motion.div
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.4 }}
-              className="mt-6 text-sm text-zinc-500"
+              className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-zinc-500"
             >
-              No credit card required • Cancel anytime • Setup included
-            </motion.p>
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                No credit card required
+              </span>
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                7-day free trial
+              </span>
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Cancel anytime
+              </span>
+            </motion.div>
           </motion.div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-[var(--border)] bg-zinc-900 text-white">
+      <footer className="bg-zinc-950 text-white">
         <div className="mx-auto max-w-6xl px-6 py-16">
-          <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-12">
             {/* Brand */}
-            <div className="lg:col-span-2 space-y-4">
-              <div className="flex items-center gap-2">
+            <div className="lg:col-span-5 space-y-5">
+              <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center">
-                  <span className="text-white text-xl">🌲</span>
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  </svg>
                 </div>
-                <span className="text-xl font-semibold">Tree Removal Receptionist</span>
+                <span className="text-lg font-semibold">Tree Removal Receptionist</span>
               </div>
-              <p className="text-sm text-zinc-400 max-w-sm">
+              <p className="text-sm text-zinc-400 max-w-sm leading-relaxed">
                 AI-powered phone answering designed specifically for tree care businesses. Capture every lead, handle emergencies, grow your operation.
               </p>
-              <div className="flex gap-4">
-                <a href="#" className="text-zinc-400 hover:text-white transition-colors">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <div className="flex gap-3">
+                <a href="#" className="w-9 h-9 rounded-full bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white transition-all">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
                   </svg>
                 </a>
-                <a href="#" className="text-zinc-400 hover:text-white transition-colors">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                <a href="#" className="w-9 h-9 rounded-full bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white transition-all">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
                   </svg>
                 </a>
-                <a href="#" className="text-zinc-400 hover:text-white transition-colors">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                <a href="#" className="w-9 h-9 rounded-full bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white transition-all">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
                   </svg>
                 </a>
               </div>
             </div>
 
             {/* Product */}
-            <div className="space-y-4">
-              <h4 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Product</h4>
+            <div className="lg:col-span-2">
+              <h4 className="text-sm font-semibold text-white mb-4">Product</h4>
               <ul className="space-y-3 text-sm">
-                <li><Link href="/pricing" className="text-zinc-300 hover:text-white transition-colors">Pricing</Link></li>
-                <li><Link href="/get-started" className="text-zinc-300 hover:text-white transition-colors">Get Started</Link></li>
-                <li><Link href="/dashboard" className="text-zinc-300 hover:text-white transition-colors">Dashboard</Link></li>
-                <li><a href="#" className="text-zinc-300 hover:text-white transition-colors">Demo Call</a></li>
+                <li><Link href="/pricing" className="text-zinc-400 hover:text-white transition-colors">Pricing</Link></li>
+                <li><Link href="/get-started" className="text-zinc-400 hover:text-white transition-colors">Get Started</Link></li>
+                <li><Link href="/dashboard" className="text-zinc-400 hover:text-white transition-colors">Dashboard</Link></li>
               </ul>
             </div>
 
             {/* Company */}
-            <div className="space-y-4">
-              <h4 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Company</h4>
+            <div className="lg:col-span-2">
+              <h4 className="text-sm font-semibold text-white mb-4">Company</h4>
               <ul className="space-y-3 text-sm">
-                <li><a href="#" className="text-zinc-300 hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="text-zinc-300 hover:text-white transition-colors">Contact</a></li>
-                <li><a href="#" className="text-zinc-300 hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="text-zinc-300 hover:text-white transition-colors">Blog</a></li>
+                <li><Link href="/contact" className="text-zinc-400 hover:text-white transition-colors">Contact</Link></li>
               </ul>
             </div>
 
             {/* Legal */}
-            <div className="space-y-4">
-              <h4 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Legal</h4>
+            <div className="lg:col-span-3">
+              <h4 className="text-sm font-semibold text-white mb-4">Legal</h4>
               <ul className="space-y-3 text-sm">
-                <li><a href="#" className="text-zinc-300 hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="text-zinc-300 hover:text-white transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="text-zinc-300 hover:text-white transition-colors">TCPA Compliance</a></li>
-                <li><a href="#" className="text-zinc-300 hover:text-white transition-colors">Security</a></li>
+                <li><Link href="/privacy" className="text-zinc-400 hover:text-white transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="text-zinc-400 hover:text-white transition-colors">Terms of Service</Link></li>
               </ul>
             </div>
           </div>
 
           {/* Bottom */}
-          <div className="mt-12 pt-8 border-t border-zinc-800 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="text-sm text-zinc-500">
-              © 2026 Tree Removal Services. All rights reserved.
-            </div>
-            <div className="flex items-center gap-6 text-sm text-zinc-500">
-              <span className="flex items-center gap-2">
-                <span>🇺🇸</span>
-                Built in the USA
-              </span>
-              <span className="flex items-center gap-2">
-                <span>🔒</span>
-                SOC 2 Compliant
-              </span>
-              <span className="flex items-center gap-2">
-                <span>⚡</span>
-                99.9% Uptime
-              </span>
+          <div className="mt-14 pt-8 border-t border-zinc-800/80">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+              <div className="text-sm text-zinc-500">
+                © 2026 Tree Removal Receptionist. All rights reserved.
+              </div>
+              <div className="flex flex-wrap justify-center gap-6 text-sm text-zinc-500">
+                <span className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+                  </svg>
+                  Built in the USA
+                </span>
+                <span className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                  SOC 2 Compliant
+                </span>
+                <span className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  99.9% Uptime
+                </span>
+              </div>
             </div>
           </div>
         </div>

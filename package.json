@@ -5,7 +5,8 @@
     "dev": "pnpm run dev:web & pnpm run dev:convex",
     "dev:web": "pnpm --filter @vozexo/web dev",
     "dev:convex": "npx convex dev",
-    "dev:voice": "pnpm --filter @vozexo/voice dev",
+    "build": "pnpm --filter @vozexo/web build",
+    "start": "pnpm --filter @vozexo/web start",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck"
   },

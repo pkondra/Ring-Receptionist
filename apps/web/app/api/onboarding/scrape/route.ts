@@ -3,6 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 const MODEL = "gpt-4o-mini";
 const MAX_CHARS = 12000;
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const businessSchema = {
   name: "business_profile",
   schema: {

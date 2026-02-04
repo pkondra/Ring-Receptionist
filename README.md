@@ -1,4 +1,4 @@
-# Vozexo - Tree Removal AI Receptionist
+# Tree Removal Services - AI Receptionist
 
 AI-powered phone receptionist SaaS for tree removal businesses. **WIP**
 
@@ -9,7 +9,8 @@ AI-powered phone receptionist SaaS for tree removal businesses. **WIP**
 - [Clerk](https://clerk.com) account
 - [Convex](https://convex.dev) account
 - [ElevenLabs](https://elevenlabs.io) account (for voice agent)
-- [OpenAI](https://platform.openai.com) API key (for lead extraction)
+- [OpenAI](https://platform.openai.com) API key (for lead extraction + onboarding scrape)
+- [Stripe](https://stripe.com) account (for subscriptions)
 
 ## Setup
 
@@ -45,12 +46,16 @@ Fill in:
 - `NEXT_PUBLIC_CONVEX_URL` - from Convex dashboard (shown after `npx convex dev`)
 - `ELEVENLABS_API_KEY` - from [ElevenLabs](https://elevenlabs.io) dashboard > Profile + API key
 - `OPENAI_API_KEY` - from [OpenAI](https://platform.openai.com) dashboard
+- `STRIPE_SECRET_KEY` - from Stripe dashboard
+- `STRIPE_WEBHOOK_SECRET` - from Stripe webhook settings
+- `STRIPE_PRICE_STARTER_MONTHLY`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO_MONTHLY`,
+  `STRIPE_PRICE_PRO_YEARLY`, `STRIPE_PRICE_GROWTH_MONTHLY`, `STRIPE_PRICE_GROWTH_YEARLY`
+- `BILLING_WEBHOOK_SECRET` - any random secret shared with Convex webhook mutation
 
 ### 5. Run development
 
 ```bash
 pnpm dev          # Runs web + Convex dev server in parallel
-pnpm dev:voice    # Runs optional voice service scaffold (port 3001)
 ```
 
 ## ElevenLabs Voice Agent Setup
@@ -71,8 +76,7 @@ The voice lab lets you:
 ## Project Structure
 
 ```
-apps/web/       Next.js dashboard (Clerk + Convex + ElevenLabs)
-apps/voice/     Fastify voice service scaffold (optional)
+apps/web/       Next.js dashboard (Clerk + Convex + ElevenLabs + Stripe)
 convex/         Convex backend (schema, mutations, queries)
 packages/       Shared packages (future)
 ```
@@ -81,7 +85,9 @@ packages/       Shared packages (future)
 
 | Route | Description |
 |-------|-------------|
-| `/` | Landing page with sign in/up |
+| `/` | Marketing landing page |
+| `/get-started` | Onboarding (website → agent → profile) |
+| `/pricing` | Pricing + trial checkout |
 | `/dashboard` | Main dashboard with agent status |
 | `/dashboard/agents` | Agent list / grid |
 | `/dashboard/agents/new` | Create new agent |
@@ -97,6 +103,20 @@ packages/       Shared packages (future)
 | `pnpm dev` | Run web + Convex dev server |
 | `pnpm dev:web` | Run only Next.js |
 | `pnpm dev:convex` | Run only Convex dev |
-| `pnpm dev:voice` | Run voice service |
+| `pnpm build` | Build web app |
+| `pnpm start` | Start web app (production) |
 | `pnpm lint` | Lint all packages |
 | `pnpm typecheck` | Type-check all packages |
+
+## Deployment Notes
+
+1. Set production env vars in your hosting platform (Clerk, Convex, Stripe, OpenAI, ElevenLabs).
+2. In Stripe → Developers → Webhooks, add an endpoint for:
+   - `https://<your-domain>/api/stripe/webhook`
+3. In Convex → Settings → Environment Variables, set:
+   - `CLERK_JWT_ISSUER_DOMAIN`
+4. Deploy Convex:
+   ```bash
+   npx convex deploy
+   ```
+5. Deploy the Next.js app (Vercel, Render, etc.). Ensure `NEXT_PUBLIC_CONVEX_URL` points to the deployed Convex URL.
