@@ -1,17 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const MODEL = "gpt-4o-mini";
-const MAX_CHARS = 18000;
-const MAX_EXTRA_PAGES = 3;
-const MAX_SITEMAP_URLS = 20;
-const MAX_HTML_BYTES = 1_500_000;
-const BASE_FETCH_TIMEOUT_MS = 5000;
-const EXTRA_FETCH_TIMEOUT_MS = 3000;
-const SITEMAP_FETCH_TIMEOUT_MS = 2500;
+const MAX_CHARS = 12000;
+const MAX_HTML_BYTES = 500_000;
+const FETCH_TIMEOUT_MS = 4000;
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 30; // Vercel Pro allows up to 60s
+export const maxDuration = 10; // Vercel Hobby limit
 
 const businessSchema = {
   name: "business_profile",
@@ -224,183 +220,6 @@ const isPrivateHost = (hostname: string) => {
   return false;
 };
 
-const stripWww = (hostname: string) =>
-  hostname.toLowerCase().startsWith("www.")
-    ? hostname.toLowerCase().slice(4)
-    : hostname.toLowerCase();
-
-const isAllowedHost = (hostname: string, baseHost: string) => {
-  if (!hostname) return false;
-  if (isPrivateHost(hostname)) return false;
-  const base = stripWww(baseHost);
-  const candidate = stripWww(hostname);
-  if (candidate === base) return true;
-  if (candidate.endsWith(`.${base}`)) return true;
-  return false;
-};
-
-const normalizeInternalUrl = (raw: string, base: URL) => {
-  try {
-    const resolved = new URL(raw, base);
-    if (!["http:", "https:"].includes(resolved.protocol)) return null;
-    if (!isAllowedHost(resolved.hostname, base.hostname)) return null;
-    resolved.hash = "";
-    return resolved;
-  } catch {
-    return null;
-  }
-};
-
-const fetchHtml = async (target: URL, timeoutMs: number) => {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const response = await fetch(target.toString(), {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; RingReceptionist/1.0; +https://ringreceptionist.com)",
-        Accept: "text/html,application/xhtml+xml",
-      },
-      redirect: "follow",
-      cache: "no-store",
-      signal: controller.signal,
-    });
-    if (!response.ok) {
-      return { ok: false as const, error: `Fetch failed (${response.status})` };
-    }
-    const lengthHeader = response.headers.get("content-length");
-    if (lengthHeader && Number(lengthHeader) > MAX_HTML_BYTES) {
-      return { ok: false as const, error: "Response too large" };
-    }
-    const html = await response.text();
-    const trimmed =
-      html.length > MAX_HTML_BYTES ? html.slice(0, MAX_HTML_BYTES) : html;
-    return { ok: true as const, html: trimmed };
-  } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Failed to fetch website";
-    return { ok: false as const, error: message };
-  } finally {
-    clearTimeout(timeout);
-  }
-};
-
-const extractInternalLinks = (html: string, base: URL) => {
-  const links = new Set<string>();
-  const regex = /href=["']([^"']+)["']/gi;
-  let match: RegExpExecArray | null = null;
-  while ((match = regex.exec(html))) {
-    const raw = match[1];
-    if (!raw) continue;
-    if (
-      raw.startsWith("mailto:") ||
-      raw.startsWith("tel:") ||
-      raw.startsWith("javascript:") ||
-      raw.startsWith("#")
-    ) {
-      continue;
-    }
-    const normalized = normalizeInternalUrl(raw, base);
-    if (!normalized) continue;
-    const path = normalized.pathname.toLowerCase();
-    if (
-      path.endsWith(".pdf") ||
-      path.endsWith(".jpg") ||
-      path.endsWith(".jpeg") ||
-      path.endsWith(".png") ||
-      path.endsWith(".webp")
-    ) {
-      continue;
-    }
-    links.add(normalized.toString());
-  }
-  return Array.from(links);
-};
-
-const scoreUrl = (url: string) => {
-  const lower = url.toLowerCase();
-  let score = 0;
-  const keywords = [
-    "service",
-    "services",
-    "about",
-    "contact",
-    "locations",
-    "areas",
-    "pricing",
-    "book",
-    "schedule",
-    "emergency",
-    "plumb",
-    "hvac",
-    "electric",
-    "moving",
-  ];
-  for (const keyword of keywords) {
-    if (lower.includes(keyword)) score += 2;
-  }
-  if (lower.includes("blog")) score -= 2;
-  if (lower.includes("privacy") || lower.includes("terms")) score -= 3;
-  return score;
-};
-
-const parseSitemapUrls = (xml: string) => {
-  const matches = Array.from(xml.matchAll(/<loc>([^<]+)<\/loc>/gi));
-  return matches.map((m) => m[1].trim()).filter(Boolean);
-};
-
-const fetchSitemapCandidates = async (base: URL) => {
-  const candidates: string[] = [];
-  const origin = base.origin;
-  // Default sitemap location - most common
-  candidates.push(`${origin}/sitemap.xml`);
-
-  // Skip robots.txt parsing to save time - default sitemap location is usually correct
-  return candidates;
-};
-
-const discoverSitemapUrls = async (base: URL) => {
-  const sitemapUrls = await fetchSitemapCandidates(base);
-  const pageUrls: string[] = [];
-
-  // Only try the first sitemap to save time
-  const sitemapUrl = sitemapUrls[0];
-  if (!sitemapUrl) return pageUrls;
-
-  const normalized = normalizeInternalUrl(sitemapUrl, base);
-  if (!normalized) return pageUrls;
-
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), SITEMAP_FETCH_TIMEOUT_MS);
-    const response = await fetch(normalized.toString(), {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; RingReceptionist/1.0; +https://ringreceptionist.com)",
-      },
-      redirect: "follow",
-      cache: "no-store",
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-    if (!response.ok) return pageUrls;
-    const xml = await response.text();
-    const urls = parseSitemapUrls(xml);
-    // Skip sitemap index - too slow to process nested sitemaps
-    if (!xml.includes("<sitemapindex")) {
-      for (const url of urls) {
-        const page = normalizeInternalUrl(url, base);
-        if (page) pageUrls.push(page.toString());
-        if (pageUrls.length >= MAX_SITEMAP_URLS) break;
-      }
-    }
-  } catch {
-    // Ignore sitemap errors
-  }
-
-  return pageUrls;
-};
-
 export async function POST(req: NextRequest) {
   const body: { url?: string } = await req.json();
   const url = normalizeUrl(body.url ?? "");
@@ -411,68 +230,43 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid URL" }, { status: 400 });
   }
 
+  // Fetch only the main page - no extra pages to stay within timeout
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
   let html = "";
-  const baseFetch = await fetchHtml(url, BASE_FETCH_TIMEOUT_MS);
-  if (!baseFetch.ok) {
-    return NextResponse.json(
-      { error: `Failed to fetch website: ${baseFetch.error}` },
-      { status: 502 }
-    );
+  try {
+    const response = await fetch(url.toString(), {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+        Accept: "text/html,application/xhtml+xml",
+      },
+      redirect: "follow",
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: `Failed to fetch website (${response.status})` },
+        { status: 502 }
+      );
+    }
+
+    html = await response.text();
+    if (html.length > MAX_HTML_BYTES) {
+      html = html.slice(0, MAX_HTML_BYTES);
+    }
+  } catch (err) {
+    clearTimeout(timeout);
+    const message = err instanceof Error ? err.message : "Failed to fetch website";
+    return NextResponse.json({ error: message }, { status: 502 });
   }
-  html = baseFetch.html;
 
   const hints = buildProfileHints(html);
   const title = hints.title || extractTitle(html);
-
-  const extraPaths = [
-    "/services",
-    "/our-services",
-    "/service-areas",
-    "/about",
-    "/contact",
-    "/locations",
-    "/pricing",
-  ];
-
-  const candidateUrls = new Set<string>();
-  extraPaths.forEach((path) => {
-    const nextUrl = normalizeInternalUrl(path, url);
-    if (nextUrl) candidateUrls.add(nextUrl.toString());
-  });
-
-  const sitemapUrls = await discoverSitemapUrls(url);
-  sitemapUrls.forEach((item) => candidateUrls.add(item));
-
-  extractInternalLinks(html, url).forEach((item) =>
-    candidateUrls.add(item)
-  );
-
-  const rankedUrls = Array.from(candidateUrls)
-    .map((item) => ({ url: item, score: scoreUrl(item) }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, MAX_EXTRA_PAGES)
-    .map((item) => item.url);
-
-  // Fetch extra pages in parallel for faster execution
-  const extraFetchPromises = rankedUrls.slice(0, MAX_EXTRA_PAGES).map(async (item) => {
-    try {
-      const nextUrl = normalizeInternalUrl(item, url);
-      if (!nextUrl) return null;
-      const extraHtml = await fetchHtml(nextUrl, EXTRA_FETCH_TIMEOUT_MS);
-      if (!extraHtml.ok) return null;
-      const extraText = stripHtml(extraHtml.html);
-      return extraText || null;
-    } catch {
-      return null;
-    }
-  });
-
-  const extraResults = await Promise.all(extraFetchPromises);
-  const extraTexts = extraResults.filter((text): text is string => text !== null);
-
-  const text = stripHtml(html);
-  const combined = [text, ...extraTexts].join("\n");
-  const sample = combined.slice(0, MAX_CHARS);
+  const text = stripHtml(html).slice(0, MAX_CHARS);
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -502,7 +296,7 @@ Title: ${title}
 Meta description: ${hints.description || "n/a"}
 Site name: ${hints.siteName || "n/a"}
 JSON-LD hints: ${hints.jsonLd ? JSON.stringify(hints.jsonLd) : "n/a"}
-Content:\n${sample}`,
+Content:\n${text}`,
       },
     ],
   };
