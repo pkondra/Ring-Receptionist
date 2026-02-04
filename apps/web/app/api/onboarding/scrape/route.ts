@@ -440,17 +440,19 @@ export async function POST(req: NextRequest) {
   try {
     const responseHtml = await fetchHtml(url, controller);
     if (!responseHtml) {
-      return NextResponse.json(
-        { error: "Failed to fetch website" },
-        { status: 502 }
-      );
+      return NextResponse.json({
+        profile: fallbackProfile(url.hostname, url.hostname),
+        source: "fallback",
+        warning: "Failed to fetch website",
+      });
     }
     html = responseHtml;
   } catch (err) {
-    return NextResponse.json(
-      { error: "Failed to fetch website" },
-      { status: 502 }
-    );
+    return NextResponse.json({
+      profile: fallbackProfile(url.hostname, url.hostname),
+      source: "fallback",
+      warning: "Failed to fetch website",
+    });
   } finally {
     clearTimeout(timeout);
   }
@@ -551,10 +553,11 @@ Content:\n${sample}`,
   if (!response.ok) {
     const errorText = await response.text();
     console.error("OpenAI onboarding error:", errorText);
-    return NextResponse.json(
-      { error: "Failed to analyze website" },
-      { status: 502 }
-    );
+    return NextResponse.json({
+      profile: fallbackProfile(sample, title),
+      source: "fallback",
+      warning: "OpenAI extraction failed",
+    });
   }
 
   const data: {

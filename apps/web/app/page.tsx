@@ -4,6 +4,7 @@ import Link from "next/link";
 import MarketingNav from "@/components/MarketingNav";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { servicePages } from "@/lib/servicePages";
 
@@ -299,7 +300,9 @@ const scaleIn = {
 };
 
 export default function Home() {
+  const router = useRouter();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [websiteInput, setWebsiteInput] = useState("");
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-zinc-900 overflow-x-hidden">
@@ -351,6 +354,32 @@ export default function Home() {
               Automatically answers calls and turns them into leads—so you can
               focus on the job, not the phone.
             </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+              className="mt-8 flex flex-col sm:flex-row gap-3 justify-center"
+            >
+              <input
+                value={websiteInput}
+                onChange={(e) => setWebsiteInput(e.target.value)}
+                placeholder="Enter your website (optional)"
+                className="w-full sm:w-[340px] rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-200"
+              />
+              <button
+                onClick={() => {
+                  const trimmed = websiteInput.trim();
+                  const href = trimmed
+                    ? `/get-started?website=${encodeURIComponent(trimmed)}`
+                    : "/get-started";
+                  router.push(href);
+                }}
+                className="rounded-full px-6 py-3 text-sm font-semibold bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-900/20 transition-all"
+              >
+                Get Started
+              </button>
+            </motion.div>
 
             {/* Feature badges */}
             <motion.div

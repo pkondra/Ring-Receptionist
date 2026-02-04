@@ -157,6 +157,15 @@ export default function GetStartedPage() {
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const websiteParam = params.get("website");
+    if (websiteParam && !website.trim()) {
+      setWebsite(websiteParam);
+    }
+  }, [website]);
+
+  useEffect(() => {
     if (!user) return;
     setContact((prev) => ({
       ...prev,
