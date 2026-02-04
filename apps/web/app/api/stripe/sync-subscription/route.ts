@@ -101,6 +101,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const recurringInterval =
+    subscription.items.data[0]?.price?.recurring?.interval;
+  const billingInterval = recurringInterval === "year" ? "year" : "month";
+
   await fetchMutation(
     api.billing.updateSubscription,
     {
@@ -109,8 +113,7 @@ export async function POST(req: NextRequest) {
       stripeSubscriptionId: subscription.id,
       stripePriceId: price,
       subscriptionStatus: subscription.status ?? "active",
-      billingInterval: subscription.items.data[0]?.price?.recurring
-        ?.interval ?? "month",
+      billingInterval,
       currentPeriodStart: subscription.current_period_start * 1000,
       currentPeriodEnd: subscription.current_period_end * 1000,
     },

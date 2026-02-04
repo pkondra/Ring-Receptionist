@@ -70,6 +70,10 @@ export async function POST(req: NextRequest) {
 
     if (!plan || !workspaceId) return;
 
+    const recurringInterval =
+      subscription.items.data[0]?.price?.recurring?.interval;
+    const billingInterval = recurringInterval === "year" ? "year" : "month";
+
     await client.mutation(api.billingWebhook.updateSubscriptionFromWebhook, {
       secret: billingWebhookSecret,
       workspaceId: workspaceId as Id<"workspaces">,
@@ -77,7 +81,7 @@ export async function POST(req: NextRequest) {
       stripeSubscriptionId: subscription.id,
       stripePriceId: priceId,
       subscriptionStatus: subscription.status,
-      billingInterval: subscription.items.data[0]?.price?.recurring?.interval ?? "month",
+      billingInterval,
       currentPeriodStart: subscription.current_period_start * 1000,
       currentPeriodEnd: subscription.current_period_end * 1000,
       stripeCustomerId: typeof subscription.customer === "string" ? subscription.customer : undefined,
