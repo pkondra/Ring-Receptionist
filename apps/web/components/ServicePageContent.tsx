@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { motion } from "framer-motion";
 import MarketingNav from "@/components/MarketingNav";
 import type { ServicePage } from "@/lib/servicePages";
@@ -11,16 +12,28 @@ const fadeInUp = {
 };
 
 export default function ServicePageContent({ page }: { page: ServicePage }) {
+  const themeStyle = {
+    "--service-accent": page.theme.accent,
+    "--service-accent-strong": page.theme.accentStrong,
+    "--service-accent-soft": page.theme.accentSoft,
+    "--service-glow-1": page.theme.glowOne,
+    "--service-glow-2": page.theme.glowTwo,
+    "--service-glow-3": page.theme.glowThree,
+  } as CSSProperties;
+
   return (
-    <div className="min-h-screen bg-[var(--background)] text-zinc-900">
+    <div
+      className="min-h-screen bg-[var(--background)] text-zinc-900"
+      style={themeStyle}
+    >
       <MarketingNav />
 
       <main>
         <section className="relative px-6 pt-20 pb-20 md:pt-28 md:pb-28 overflow-hidden">
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[760px] h-[760px] rounded-full bg-emerald-100/30 blur-3xl" />
-            <div className="absolute -bottom-16 -left-16 w-[360px] h-[360px] rounded-full bg-emerald-50/60 blur-3xl" />
-            <div className="absolute -bottom-16 -right-16 w-[360px] h-[360px] rounded-full bg-amber-50/30 blur-3xl" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[760px] h-[760px] rounded-full blur-3xl bg-[color:var(--service-glow-1)]/50" />
+            <div className="absolute -bottom-16 -left-16 w-[360px] h-[360px] rounded-full blur-3xl bg-[color:var(--service-glow-2)]/70" />
+            <div className="absolute -bottom-16 -right-16 w-[360px] h-[360px] rounded-full blur-3xl bg-[color:var(--service-glow-3)]/70" />
           </div>
 
           <div className="relative mx-auto max-w-4xl text-center">
@@ -28,9 +41,9 @@ export default function ServicePageContent({ page }: { page: ServicePage }) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="inline-flex items-center gap-2.5 rounded-full border border-emerald-300/60 bg-white/80 backdrop-blur-sm px-5 py-2.5 text-sm font-medium text-zinc-800 shadow-sm"
+              className="inline-flex items-center gap-2.5 rounded-full border bg-white/80 backdrop-blur-sm px-5 py-2.5 text-sm font-medium text-zinc-800 shadow-sm border-[color:var(--service-accent-soft)]"
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full animate-pulse bg-[color:var(--service-accent)]" />
               {page.heroTag}
             </motion.span>
 
@@ -42,7 +55,9 @@ export default function ServicePageContent({ page }: { page: ServicePage }) {
             >
               {page.heroTitle}
               <br />
-              <span className="text-emerald-600">{page.heroHighlight}</span>
+              <span className="text-[color:var(--service-accent-strong)]">
+                {page.heroHighlight}
+              </span>
             </motion.h1>
 
             <motion.p
@@ -65,7 +80,7 @@ export default function ServicePageContent({ page }: { page: ServicePage }) {
                   key={item}
                   className="inline-flex items-center gap-2.5 bg-white/70 px-4 py-2 rounded-full border border-zinc-200/60"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--service-accent)]" />
                   {item}
                 </span>
               ))}
@@ -115,7 +130,7 @@ export default function ServicePageContent({ page }: { page: ServicePage }) {
                 whileInView="visible"
                 viewport={{ once: true, margin: "-80px" }}
                 variants={fadeInUp}
-                className="surface-card p-6"
+                className="surface-card p-6 border border-transparent hover:border-[color:var(--service-accent-soft)] transition"
               >
                 <h3 className="text-lg font-semibold text-zinc-900">
                   {item.title}
@@ -151,8 +166,11 @@ export default function ServicePageContent({ page }: { page: ServicePage }) {
                   title: "Works with your stack",
                   body: "Syncs with calendars and CRMs so your team moves fast.",
                 },
-              ].map((item) => (
-                <div key={item.title} className="surface-card p-6">
+            ].map((item) => (
+                <div
+                  key={item.title}
+                  className="surface-card p-6 border border-transparent hover:border-[color:var(--service-accent-soft)] transition"
+                >
                   <h3 className="text-lg font-semibold text-zinc-900">
                     {item.title}
                   </h3>

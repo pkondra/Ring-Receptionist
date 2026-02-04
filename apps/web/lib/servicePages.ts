@@ -7,6 +7,14 @@ export type ServicePage = {
   heroSubtitle: string;
   exampleCalls: string[];
   faq: Array<{ q: string; a: string }>;
+  theme: {
+    accent: string;
+    accentStrong: string;
+    accentSoft: string;
+    glowOne: string;
+    glowTwo: string;
+    glowThree: string;
+  };
 };
 
 export const servicePages: ServicePage[] = [
@@ -33,6 +41,14 @@ export const servicePages: ServicePage[] = [
         a: "Yes. It can book estimates based on your availability or just capture details for callbacks.",
       },
     ],
+    theme: {
+      accent: "#2563EB",
+      accentStrong: "#1E40AF",
+      accentSoft: "#DBEAFE",
+      glowOne: "#BFDBFE",
+      glowTwo: "#DBEAFE",
+      glowThree: "#EFF6FF",
+    },
   },
   {
     slug: "hvac",
@@ -57,6 +73,14 @@ export const servicePages: ServicePage[] = [
         a: "Contact info, service address, issue description, urgency, and availability.",
       },
     ],
+    theme: {
+      accent: "#0E7490",
+      accentStrong: "#155E75",
+      accentSoft: "#CCFBF1",
+      glowOne: "#A5F3FC",
+      glowTwo: "#CCFBF1",
+      glowThree: "#ECFEFF",
+    },
   },
   {
     slug: "electricians",
@@ -81,6 +105,14 @@ export const servicePages: ServicePage[] = [
         a: "Yes. Every call is answered, even nights and weekends.",
       },
     ],
+    theme: {
+      accent: "#F59E0B",
+      accentStrong: "#B45309",
+      accentSoft: "#FEF3C7",
+      glowOne: "#FDE68A",
+      glowTwo: "#FEF3C7",
+      glowThree: "#FFF7ED",
+    },
   },
   {
     slug: "movers",
@@ -105,6 +137,46 @@ export const servicePages: ServicePage[] = [
         a: "Yes. It scales for higher call volume and concurrent calls.",
       },
     ],
+    theme: {
+      accent: "#7C3AED",
+      accentStrong: "#6D28D9",
+      accentSoft: "#EDE9FE",
+      glowOne: "#DDD6FE",
+      glowTwo: "#EDE9FE",
+      glowThree: "#F5F3FF",
+    },
+  },
+  {
+    slug: "dental",
+    label: "Dental Practices",
+    heroTag: "Dental Answering Service",
+    heroTitle: "Never miss another",
+    heroHighlight: "dental patient",
+    heroSubtitle:
+      "Ring Receptionist handles new patient calls, emergencies, and appointment requests while your team stays chairside.",
+    exampleCalls: ["Tooth pain", "New patient inquiries", "Cleaning requests"],
+    faq: [
+      {
+        q: "Can it handle urgent dental calls?",
+        a: "Yes. It flags emergencies like pain or broken teeth for priority follow-up.",
+      },
+      {
+        q: "Will it capture insurance details?",
+        a: "It gathers caller info, reason for visit, and any insurance notes you request.",
+      },
+      {
+        q: "Does it schedule appointments?",
+        a: "Yes. It can book based on your availability or capture preferred times for callbacks.",
+      },
+    ],
+    theme: {
+      accent: "#0EA5E9",
+      accentStrong: "#0369A1",
+      accentSoft: "#E0F2FE",
+      glowOne: "#BAE6FD",
+      glowTwo: "#E0F2FE",
+      glowThree: "#F0F9FF",
+    },
   },
   {
     slug: "tree",
@@ -129,6 +201,14 @@ export const servicePages: ServicePage[] = [
         a: "Yes. Every call is transcribed and summarized in your dashboard.",
       },
     ],
+    theme: {
+      accent: "#16A34A",
+      accentStrong: "#15803D",
+      accentSoft: "#DCFCE7",
+      glowOne: "#BBF7D0",
+      glowTwo: "#DCFCE7",
+      glowThree: "#ECFCCB",
+    },
   },
 ];
 
