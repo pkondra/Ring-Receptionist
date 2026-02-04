@@ -5,6 +5,9 @@ const MAX_CHARS = 18000;
 const MAX_EXTRA_PAGES = 5;
 const MAX_SITEMAP_URLS = 40;
 const MAX_HTML_BYTES = 2_000_000;
+const BASE_FETCH_TIMEOUT_MS = 8000;
+const EXTRA_FETCH_TIMEOUT_MS = 4500;
+const SITEMAP_FETCH_TIMEOUT_MS = 4500;
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -247,22 +250,38 @@ const normalizeInternalUrl = (raw: string, base: URL) => {
   }
 };
 
-const fetchHtml = async (target: URL, controller: AbortController) => {
-  const response = await fetch(target.toString(), {
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (compatible; RingReceptionist/1.0; +https://ringreceptionist.com)",
-      Accept: "text/html,application/xhtml+xml",
-    },
-    signal: controller.signal,
-  });
-  if (!response.ok) return null;
-  const lengthHeader = response.headers.get("content-length");
-  if (lengthHeader && Number(lengthHeader) > MAX_HTML_BYTES) {
-    return null;
+const fetchHtml = async (target: URL, timeoutMs: number) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(target.toString(), {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; RingReceptionist/1.0; +https://ringreceptionist.com)",
+        Accept: "text/html,application/xhtml+xml",
+      },
+      redirect: "follow",
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      return { ok: false as const, error: `Fetch failed (${response.status})` };
+    }
+    const lengthHeader = response.headers.get("content-length");
+    if (lengthHeader && Number(lengthHeader) > MAX_HTML_BYTES) {
+      return { ok: false as const, error: "Response too large" };
+    }
+    const html = await response.text();
+    const trimmed =
+      html.length > MAX_HTML_BYTES ? html.slice(0, MAX_HTML_BYTES) : html;
+    return { ok: true as const, html: trimmed };
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Failed to fetch website";
+    return { ok: false as const, error: message };
+  } finally {
+    clearTimeout(timeout);
   }
-  const html = await response.text();
-  return html.length > MAX_HTML_BYTES ? html.slice(0, MAX_HTML_BYTES) : html;
 };
 
 const extractInternalLinks = (html: string, base: URL) => {
@@ -329,7 +348,7 @@ const parseSitemapUrls = (xml: string) => {
   return matches.map((m) => m[1].trim()).filter(Boolean);
 };
 
-const fetchSitemapCandidates = async (base: URL, controller: AbortController) => {
+const fetchSitemapCandidates = async (base: URL) => {
   const candidates = new Set<string>();
   const origin = base.origin;
   candidates.add(`${origin}/sitemap.xml`);
@@ -342,7 +361,13 @@ const fetchSitemapCandidates = async (base: URL, controller: AbortController) =>
         "User-Agent":
           "Mozilla/5.0 (compatible; RingReceptionist/1.0; +https://ringreceptionist.com)",
       },
-      signal: controller.signal,
+      redirect: "follow",
+      cache: "no-store",
+      signal: (() => {
+        const controller = new AbortController();
+        setTimeout(() => controller.abort(), SITEMAP_FETCH_TIMEOUT_MS);
+        return controller.signal;
+      })(),
     });
     if (robots.ok) {
       const text = await robots.text();
@@ -362,8 +387,8 @@ const fetchSitemapCandidates = async (base: URL, controller: AbortController) =>
   return Array.from(candidates);
 };
 
-const discoverSitemapUrls = async (base: URL, controller: AbortController) => {
-  const sitemapUrls = await fetchSitemapCandidates(base, controller);
+const discoverSitemapUrls = async (base: URL) => {
+  const sitemapUrls = await fetchSitemapCandidates(base);
   const pageUrls: string[] = [];
   const sitemapQueue = [...sitemapUrls];
   let processed = 0;
@@ -379,7 +404,13 @@ const discoverSitemapUrls = async (base: URL, controller: AbortController) => {
           "User-Agent":
             "Mozilla/5.0 (compatible; RingReceptionist/1.0; +https://ringreceptionist.com)",
         },
-        signal: controller.signal,
+        redirect: "follow",
+        cache: "no-store",
+        signal: (() => {
+          const controller = new AbortController();
+          setTimeout(() => controller.abort(), SITEMAP_FETCH_TIMEOUT_MS);
+          return controller.signal;
+        })(),
       });
       if (!response.ok) continue;
       const xml = await response.text();
@@ -403,26 +434,6 @@ const discoverSitemapUrls = async (base: URL, controller: AbortController) => {
   return pageUrls.slice(0, MAX_SITEMAP_URLS);
 };
 
-const fallbackProfile = (text: string, title: string) => {
-  const email =
-    text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0] ?? null;
-  const phone =
-    text.match(/(\+?\d[\d\s().-]{7,}\d)/)?.[0]?.trim() ?? null;
-
-  return {
-    business_name: title || null,
-    tagline: null,
-    services: [],
-    service_area: null,
-    hours: null,
-    phone,
-    email,
-    tone_style: null,
-    tone_description: null,
-    key_points: [],
-  };
-};
-
 export async function POST(req: NextRequest) {
   const body: { url?: string } = await req.json();
   const url = normalizeUrl(body.url ?? "");
@@ -433,29 +444,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid URL" }, { status: 400 });
   }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
-
   let html = "";
-  try {
-    const responseHtml = await fetchHtml(url, controller);
-    if (!responseHtml) {
-      return NextResponse.json({
-        profile: fallbackProfile(url.hostname, url.hostname),
-        source: "fallback",
-        warning: "Failed to fetch website",
-      });
-    }
-    html = responseHtml;
-  } catch (err) {
-    return NextResponse.json({
-      profile: fallbackProfile(url.hostname, url.hostname),
-      source: "fallback",
-      warning: "Failed to fetch website",
-    });
-  } finally {
-    clearTimeout(timeout);
+  const baseFetch = await fetchHtml(url, BASE_FETCH_TIMEOUT_MS);
+  if (!baseFetch.ok) {
+    return NextResponse.json(
+      { error: `Failed to fetch website: ${baseFetch.error}` },
+      { status: 502 }
+    );
   }
+  html = baseFetch.html;
 
   const hints = buildProfileHints(html);
   const title = hints.title || extractTitle(html);
@@ -476,7 +473,7 @@ export async function POST(req: NextRequest) {
     if (nextUrl) candidateUrls.add(nextUrl.toString());
   });
 
-  const sitemapUrls = await discoverSitemapUrls(url, controller);
+  const sitemapUrls = await discoverSitemapUrls(url);
   sitemapUrls.forEach((item) => candidateUrls.add(item));
 
   extractInternalLinks(html, url).forEach((item) =>
@@ -495,9 +492,9 @@ export async function POST(req: NextRequest) {
     try {
       const nextUrl = normalizeInternalUrl(item, url);
       if (!nextUrl) continue;
-      const extraHtml = await fetchHtml(nextUrl, controller);
-      if (!extraHtml) continue;
-      const extraText = stripHtml(extraHtml);
+      const extraHtml = await fetchHtml(nextUrl, EXTRA_FETCH_TIMEOUT_MS);
+      if (!extraHtml.ok) continue;
+      const extraText = stripHtml(extraHtml.html);
       if (extraText) extraTexts.push(extraText);
     } catch {
       continue;
@@ -510,10 +507,10 @@ export async function POST(req: NextRequest) {
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({
-      profile: fallbackProfile(sample, title),
-      source: "fallback",
-    });
+    return NextResponse.json(
+      { error: "OPENAI_API_KEY not configured" },
+      { status: 500 }
+    );
   }
 
   const payload = {
@@ -553,11 +550,10 @@ Content:\n${sample}`,
   if (!response.ok) {
     const errorText = await response.text();
     console.error("OpenAI onboarding error:", errorText);
-    return NextResponse.json({
-      profile: fallbackProfile(sample, title),
-      source: "fallback",
-      warning: "OpenAI extraction failed",
-    });
+    return NextResponse.json(
+      { error: "Failed to analyze website", details: errorText },
+      { status: 502 }
+    );
   }
 
   const data: {
@@ -565,7 +561,29 @@ Content:\n${sample}`,
   } = await response.json();
 
   const content = data.choices?.[0]?.message?.content ?? "{}";
-  let profile = fallbackProfile(sample, title);
+  let profile: {
+    business_name: string | null;
+    tagline: string | null;
+    services: string[];
+    service_area: string | null;
+    hours: string | null;
+    phone: string | null;
+    email: string | null;
+    tone_style: string | null;
+    tone_description: string | null;
+    key_points: string[];
+  } = {
+    business_name: title || null,
+    tagline: null,
+    services: [],
+    service_area: null,
+    hours: null,
+    phone: null,
+    email: null,
+    tone_style: null,
+    tone_description: null,
+    key_points: [],
+  };
   try {
     profile = JSON.parse(content) as typeof profile;
   } catch (err) {

@@ -98,10 +98,19 @@ const applyServiceLine = (context: string, services: string[]) =>
     buildServiceLine(services)
   );
 
+const applyBusinessName = (context: string, businessName?: string | null) => {
+  if (!businessName) return context;
+  return context.replace(/Ring Receptionist/g, businessName);
+};
+
 const mergeCustomContext = (notes: string, profile?: Profile) => {
+  const baseContext = applyBusinessName(
+    DEFAULT_CUSTOM_CONTEXT,
+    profile?.business_name
+  );
   const context = profile
-    ? applyServiceLine(DEFAULT_CUSTOM_CONTEXT, profile.services ?? [])
-    : DEFAULT_CUSTOM_CONTEXT;
+    ? applyServiceLine(baseContext, profile.services ?? [])
+    : baseContext;
   if (!notes) return context;
   return `${context}\n\nWebsite Notes\n${notes}`;
 };
