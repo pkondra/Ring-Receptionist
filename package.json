@@ -1,0 +1,24 @@
+{
+  "name": "vozexo",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm run dev:web & pnpm run dev:convex",
+    "dev:web": "pnpm --filter @vozexo/web dev",
+    "dev:convex": "npx convex dev",
+    "dev:voice": "pnpm --filter @vozexo/voice dev",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "convex": "^1.21.0",
+    "typescript": "^5.7.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@clerk/shared",
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ]
+  }
+}
