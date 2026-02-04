@@ -2,15 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 const MODEL = "gpt-4o-mini";
 const MAX_CHARS = 18000;
-const MAX_EXTRA_PAGES = 5;
-const MAX_SITEMAP_URLS = 40;
-const MAX_HTML_BYTES = 2_000_000;
-const BASE_FETCH_TIMEOUT_MS = 8000;
-const EXTRA_FETCH_TIMEOUT_MS = 4500;
-const SITEMAP_FETCH_TIMEOUT_MS = 4500;
+const MAX_EXTRA_PAGES = 3;
+const MAX_SITEMAP_URLS = 20;
+const MAX_HTML_BYTES = 1_500_000;
+const BASE_FETCH_TIMEOUT_MS = 5000;
+const EXTRA_FETCH_TIMEOUT_MS = 3000;
+const SITEMAP_FETCH_TIMEOUT_MS = 2500;
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 30; // Vercel Pro allows up to 60s
 
 const businessSchema = {
   name: "business_profile",
@@ -349,89 +350,55 @@ const parseSitemapUrls = (xml: string) => {
 };
 
 const fetchSitemapCandidates = async (base: URL) => {
-  const candidates = new Set<string>();
+  const candidates: string[] = [];
   const origin = base.origin;
-  candidates.add(`${origin}/sitemap.xml`);
-  candidates.add(`${origin}/sitemap_index.xml`);
+  // Default sitemap location - most common
+  candidates.push(`${origin}/sitemap.xml`);
+
+  // Skip robots.txt parsing to save time - default sitemap location is usually correct
+  return candidates;
+};
+
+const discoverSitemapUrls = async (base: URL) => {
+  const sitemapUrls = await fetchSitemapCandidates(base);
+  const pageUrls: string[] = [];
+
+  // Only try the first sitemap to save time
+  const sitemapUrl = sitemapUrls[0];
+  if (!sitemapUrl) return pageUrls;
+
+  const normalized = normalizeInternalUrl(sitemapUrl, base);
+  if (!normalized) return pageUrls;
 
   try {
-    const robotsUrl = new URL("/robots.txt", origin);
-    const robots = await fetch(robotsUrl.toString(), {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), SITEMAP_FETCH_TIMEOUT_MS);
+    const response = await fetch(normalized.toString(), {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (compatible; RingReceptionist/1.0; +https://ringreceptionist.com)",
       },
       redirect: "follow",
       cache: "no-store",
-      signal: (() => {
-        const controller = new AbortController();
-        setTimeout(() => controller.abort(), SITEMAP_FETCH_TIMEOUT_MS);
-        return controller.signal;
-      })(),
+      signal: controller.signal,
     });
-    if (robots.ok) {
-      const text = await robots.text();
-      const lines = text.split(/\r?\n/);
-      for (const line of lines) {
-        const match = line.match(/^sitemap:\s*(.+)$/i);
-        if (match) {
-          const normalized = normalizeInternalUrl(match[1].trim(), base);
-          if (normalized) candidates.add(normalized.toString());
-        }
+    clearTimeout(timeout);
+    if (!response.ok) return pageUrls;
+    const xml = await response.text();
+    const urls = parseSitemapUrls(xml);
+    // Skip sitemap index - too slow to process nested sitemaps
+    if (!xml.includes("<sitemapindex")) {
+      for (const url of urls) {
+        const page = normalizeInternalUrl(url, base);
+        if (page) pageUrls.push(page.toString());
+        if (pageUrls.length >= MAX_SITEMAP_URLS) break;
       }
     }
   } catch {
-    // ignore
+    // Ignore sitemap errors
   }
 
-  return Array.from(candidates);
-};
-
-const discoverSitemapUrls = async (base: URL) => {
-  const sitemapUrls = await fetchSitemapCandidates(base);
-  const pageUrls: string[] = [];
-  const sitemapQueue = [...sitemapUrls];
-  let processed = 0;
-
-  while (sitemapQueue.length && processed < 3) {
-    const sitemapUrl = sitemapQueue.shift();
-    if (!sitemapUrl) break;
-    const normalized = normalizeInternalUrl(sitemapUrl, base);
-    if (!normalized) continue;
-    try {
-      const response = await fetch(normalized.toString(), {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (compatible; RingReceptionist/1.0; +https://ringreceptionist.com)",
-        },
-        redirect: "follow",
-        cache: "no-store",
-        signal: (() => {
-          const controller = new AbortController();
-          setTimeout(() => controller.abort(), SITEMAP_FETCH_TIMEOUT_MS);
-          return controller.signal;
-        })(),
-      });
-      if (!response.ok) continue;
-      const xml = await response.text();
-      const urls = parseSitemapUrls(xml);
-      if (xml.includes("<sitemapindex")) {
-        for (const url of urls) {
-          if (sitemapQueue.length < 4) sitemapQueue.push(url);
-        }
-      } else {
-        for (const url of urls) {
-          const page = normalizeInternalUrl(url, base);
-          if (page) pageUrls.push(page.toString());
-        }
-      }
-      processed += 1;
-    } catch {
-      continue;
-    }
-  }
-
-  return pageUrls.slice(0, MAX_SITEMAP_URLS);
+  return pageUrls;
 };
 
 export async function POST(req: NextRequest) {
@@ -486,20 +453,22 @@ export async function POST(req: NextRequest) {
     .slice(0, MAX_EXTRA_PAGES)
     .map((item) => item.url);
 
-  const extraTexts: string[] = [];
-  for (const item of rankedUrls) {
-    if (extraTexts.length >= MAX_EXTRA_PAGES) break;
+  // Fetch extra pages in parallel for faster execution
+  const extraFetchPromises = rankedUrls.slice(0, MAX_EXTRA_PAGES).map(async (item) => {
     try {
       const nextUrl = normalizeInternalUrl(item, url);
-      if (!nextUrl) continue;
+      if (!nextUrl) return null;
       const extraHtml = await fetchHtml(nextUrl, EXTRA_FETCH_TIMEOUT_MS);
-      if (!extraHtml.ok) continue;
+      if (!extraHtml.ok) return null;
       const extraText = stripHtml(extraHtml.html);
-      if (extraText) extraTexts.push(extraText);
+      return extraText || null;
     } catch {
-      continue;
+      return null;
     }
-  }
+  });
+
+  const extraResults = await Promise.all(extraFetchPromises);
+  const extraTexts = extraResults.filter((text): text is string => text !== null);
 
   const text = stripHtml(html);
   const combined = [text, ...extraTexts].join("\n");
