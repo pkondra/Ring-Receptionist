@@ -349,7 +349,6 @@ export default function VoiceChatLab({
           {!isActive ? (
             <button
               onClick={handleStart}
-              disabled={status === "connecting"}
               className="rounded-full px-5 py-2.5 text-sm font-medium btn-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               Start Voice Chat

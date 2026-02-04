@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { UserButton } from "@clerk/nextjs";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { api } from "@convex/_generated/api";
 import DashboardNav from "@/components/DashboardNav";
 import Link from "next/link";
@@ -15,7 +15,6 @@ export default function DashboardLayout({
 }) {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [setupComplete, setSetupComplete] = useState(false);
 
   const ensureAccountSetup = useMutation(api.users.ensureAccountSetup);
@@ -38,8 +37,12 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (isLoading) return;
+    const params =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search)
+        : null;
     const hasCheckoutSuccess =
-      searchParams.get("success") === "1" && searchParams.get("session_id");
+      params?.get("success") === "1" && params?.get("session_id");
 
     if (!isAuthenticated) {
       router.replace("/pricing");
@@ -51,7 +54,7 @@ export default function DashboardLayout({
     if (!billingSummary?.plan && !hasCheckoutSuccess) {
       router.replace("/pricing");
     }
-  }, [isAuthenticated, isLoading, billingSummary, router, searchParams]);
+  }, [isAuthenticated, isLoading, billingSummary, router]);
 
   if (isLoading || (isAuthenticated && billingSummary === undefined)) {
     return (

@@ -7,7 +7,20 @@ import MarketingNav from "@/components/MarketingNav";
 import { useConvexAuth, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 
-const plans = [
+type Plan = {
+  id: "starter" | "pro" | "growth";
+  name: string;
+  priceMonthly: number;
+  priceYearly: number;
+  minutes: number;
+  overage: number;
+  highlight: boolean;
+  description: string;
+  features: string[];
+  badge?: string;
+};
+
+const plans: Plan[] = [
   {
     id: "starter",
     name: "Starter",
@@ -64,7 +77,7 @@ const plans = [
       "Early access to new features",
     ],
   },
-] as const;
+];
 
 export default function PricingPage() {
   const [interval, setInterval] = useState<"month" | "year">("month");
