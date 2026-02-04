@@ -1,6 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { UserButton } from "@clerk/nextjs";
+import { useConvexAuth, useMutation, useQuery } from "convex/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { api } from "@convex/_generated/api";
 import DashboardNav from "@/components/DashboardNav";
 import Link from "next/link";
 
@@ -9,13 +13,61 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { isAuthenticated, isLoading } = useConvexAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [setupComplete, setSetupComplete] = useState(false);
+
+  const ensureAccountSetup = useMutation(api.users.ensureAccountSetup);
+  const workspace = useQuery(
+    api.workspaces.getMyWorkspace,
+    isAuthenticated ? {} : "skip"
+  );
+  const billingSummary = useQuery(
+    api.billing.getBillingSummary,
+    workspace ? { workspaceId: workspace._id } : "skip"
+  );
+
+  useEffect(() => {
+    if (isAuthenticated && !setupComplete) {
+      ensureAccountSetup({ createDefaultAgent: false })
+        .then(() => setSetupComplete(true))
+        .catch(console.error);
+    }
+  }, [isAuthenticated, setupComplete, ensureAccountSetup]);
+
+  useEffect(() => {
+    if (isLoading) return;
+    const hasCheckoutSuccess =
+      searchParams.get("success") === "1" && searchParams.get("session_id");
+
+    if (!isAuthenticated) {
+      router.replace("/pricing");
+      return;
+    }
+
+    if (billingSummary === undefined) return;
+
+    if (!billingSummary?.plan && !hasCheckoutSuccess) {
+      router.replace("/pricing");
+    }
+  }, [isAuthenticated, isLoading, billingSummary, router, searchParams]);
+
+  if (isLoading || (isAuthenticated && billingSummary === undefined)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-sm text-zinc-500">Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen flex-col md:flex-row">
       <aside className="w-full md:w-64 p-4 md:p-6 flex flex-col gap-4 bg-[var(--surface)] md:border-r border-[var(--border)]">
         <div className="surface-card px-4 py-4 mb-5">
           <Link href="/dashboard" className="block">
             <h2 className="text-xl font-semibold text-zinc-900 font-display">
-              Vozexo
+              Tree Removal Services
             </h2>
             <p className="text-xs text-zinc-500 mt-1">
               AI receptionist studio

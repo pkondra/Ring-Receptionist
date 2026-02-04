@@ -7,14 +7,18 @@ import Stripe from "stripe";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
-const planByPriceEnv = new Map<string, "starter" | "pro" | "growth">([
-  [process.env.STRIPE_PRICE_STARTER_MONTHLY ?? "", "starter"],
-  [process.env.STRIPE_PRICE_STARTER_YEARLY ?? "", "starter"],
-  [process.env.STRIPE_PRICE_PRO_MONTHLY ?? "", "pro"],
-  [process.env.STRIPE_PRICE_PRO_YEARLY ?? "", "pro"],
-  [process.env.STRIPE_PRICE_GROWTH_MONTHLY ?? "", "growth"],
-  [process.env.STRIPE_PRICE_GROWTH_YEARLY ?? "", "growth"],
-]);
+const planByPriceEnv = new Map<string, "starter" | "pro" | "growth">();
+const priceEntries: Array<[string | undefined, "starter" | "pro" | "growth"]> = [
+  [process.env.STRIPE_PRICE_STARTER_MONTHLY, "starter"],
+  [process.env.STRIPE_PRICE_STARTER_YEARLY, "starter"],
+  [process.env.STRIPE_PRICE_PRO_MONTHLY, "pro"],
+  [process.env.STRIPE_PRICE_PRO_YEARLY, "pro"],
+  [process.env.STRIPE_PRICE_GROWTH_MONTHLY, "growth"],
+  [process.env.STRIPE_PRICE_GROWTH_YEARLY, "growth"],
+];
+for (const [priceId, plan] of priceEntries) {
+  if (priceId) planByPriceEnv.set(priceId, plan);
+}
 
 export async function POST(req: NextRequest) {
   if (!stripeSecretKey) {

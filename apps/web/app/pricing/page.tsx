@@ -1,9 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import Link from "next/link";
 import MarketingNav from "@/components/MarketingNav";
+import { useConvexAuth, useQuery } from "convex/react";
+import { api } from "@convex/_generated/api";
 
 const plans = [
   {
@@ -67,6 +69,17 @@ const plans = [
 export default function PricingPage() {
   const [interval, setInterval] = useState<"month" | "year">("month");
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const { isAuthenticated } = useConvexAuth();
+
+  const workspace = useQuery(
+    api.workspaces.getMyWorkspace,
+    isAuthenticated ? {} : "skip"
+  );
+  const agents = useQuery(
+    api.agentConfigs.listAgents,
+    workspace ? { workspaceId: workspace._id } : "skip"
+  );
+  const hasAgent = agents ? agents.length > 0 : false;
 
   const pricing = useMemo(() => {
     return plans.map((plan) => {
@@ -81,6 +94,10 @@ export default function PricingPage() {
 
   const startCheckout = async (planId: string) => {
     try {
+      if (!hasAgent) {
+        alert("Complete onboarding before starting your trial.");
+        return;
+      }
       setLoadingPlan(planId);
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
@@ -193,23 +210,33 @@ export default function PricingPage() {
                 </div>
 
                 <SignedIn>
-                  <button
-                    onClick={() => startCheckout(plan.id)}
-                    disabled={loadingPlan === plan.id}
-                    className="rounded-full px-5 py-2.5 text-sm font-medium btn-primary disabled:opacity-60"
-                  >
-                    {loadingPlan === plan.id
-                      ? "Starting checkout..."
-                      : "Start Free 7-Day Trial"}
-                  </button>
+                  {hasAgent ? (
+                    <button
+                      onClick={() => startCheckout(plan.id)}
+                      disabled={loadingPlan === plan.id}
+                      className="rounded-full px-5 py-2.5 text-sm font-medium btn-primary disabled:opacity-60"
+                    >
+                      {loadingPlan === plan.id
+                        ? "Starting checkout..."
+                        : "Start Free 7-Day Trial"}
+                    </button>
+                  ) : (
+                    <Link
+                      href="/get-started"
+                      className="rounded-full px-5 py-2.5 text-sm font-medium btn-primary text-center"
+                    >
+                      Complete onboarding
+                    </Link>
+                  )}
                 </SignedIn>
                 <SignedOut>
                   <div className="flex flex-col gap-2">
-                    <SignUpButton mode="modal">
-                      <button className="rounded-full px-5 py-2.5 text-sm font-medium btn-primary">
-                        Start Free 7-Day Trial
-                      </button>
-                    </SignUpButton>
+                    <Link
+                      href="/get-started"
+                      className="rounded-full px-5 py-2.5 text-sm font-medium btn-primary text-center"
+                    >
+                      Get Started
+                    </Link>
                     <SignInButton mode="modal">
                       <button className="rounded-full px-5 py-2.5 text-sm font-medium btn-outline">
                         Sign In

@@ -75,6 +75,11 @@ export const createAgent = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
 
+    const existingAgent = await ctx.db
+      .query("agentConfigs")
+      .withIndex("by_workspace", (q) => q.eq("workspaceId", args.workspaceId))
+      .first();
+
     const agentConfigId = await ctx.db.insert("agentConfigs", {
       workspaceId: args.workspaceId,
       agentName: args.agentName,
@@ -84,7 +89,7 @@ export const createAgent = mutation({
       voiceId: args.voiceId ?? DEFAULT_VOICE_ID,
       qualificationGoals: args.qualificationGoals,
       emergencyProtocol: args.emergencyProtocol,
-      isDefault: false,
+      isDefault: !existingAgent,
     });
 
     return agentConfigId;

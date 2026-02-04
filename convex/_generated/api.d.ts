@@ -10,6 +10,8 @@
 
 import type * as agentConfigs from "../agentConfigs.js";
 import type * as appointments from "../appointments.js";
+import type * as billing from "../billing.js";
+import type * as billingWebhook from "../billingWebhook.js";
 import type * as chatMessages from "../chatMessages.js";
 import type * as chatSessions from "../chatSessions.js";
 import type * as constants from "../constants.js";
@@ -27,6 +29,8 @@ import type {
 declare const fullApi: ApiFromModules<{
   agentConfigs: typeof agentConfigs;
   appointments: typeof appointments;
+  billing: typeof billing;
+  billingWebhook: typeof billingWebhook;
   chatMessages: typeof chatMessages;
   chatSessions: typeof chatSessions;
   constants: typeof constants;

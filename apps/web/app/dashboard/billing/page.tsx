@@ -94,7 +94,7 @@ export default function BillingPage() {
             Current Plan
           </h2>
           <div className="text-2xl font-semibold text-zinc-900">
-            {summary?.plan ?? "Starter"}
+            {summary?.plan ?? "No active plan"}
           </div>
           <div className="text-sm text-zinc-500">
             Status: {summary?.subscriptionStatus ?? "inactive"}
@@ -102,12 +102,21 @@ export default function BillingPage() {
           <div className="text-sm text-zinc-500">
             Renews: {formatDate(summary?.currentPeriodEnd)}
           </div>
-          <button
-            onClick={handleManageBilling}
-            className="rounded-full px-4 py-2 text-sm font-medium btn-primary"
-          >
-            Manage Subscription
-          </button>
+          {summary?.plan ? (
+            <button
+              onClick={handleManageBilling}
+              className="rounded-full px-4 py-2 text-sm font-medium btn-primary"
+            >
+              Manage Subscription
+            </button>
+          ) : (
+            <a
+              href="/pricing"
+              className="rounded-full px-4 py-2 text-sm font-medium btn-primary text-center"
+            >
+              Upgrade to a Plan
+            </a>
+          )}
         </div>
 
         <div className="surface-card p-6 space-y-3">

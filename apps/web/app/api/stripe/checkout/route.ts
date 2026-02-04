@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { fetchMutation, fetchQuery } from "convex/nextjs";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
@@ -57,14 +57,35 @@ export async function POST(req: NextRequest) {
     apiVersion: "2024-06-20",
   });
 
-  const workspace = await fetchQuery(
+  let workspace = await fetchQuery(
     api.workspaces.getMyWorkspace,
     {},
     { token }
   );
 
   if (!workspace) {
+    await fetchMutation(
+      api.users.ensureAccountSetup,
+      { createDefaultAgent: false },
+      { token }
+    );
+    workspace = await fetchQuery(api.workspaces.getMyWorkspace, {}, { token });
+  }
+
+  if (!workspace) {
     return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
+  }
+
+  const agents = await fetchQuery(
+    api.agentConfigs.listAgents,
+    { workspaceId: workspace._id as Id<"workspaces"> },
+    { token }
+  );
+  if (!agents || agents.length === 0) {
+    return NextResponse.json(
+      { error: "Complete onboarding before starting checkout." },
+      { status: 409 }
+    );
   }
 
   if (
@@ -81,10 +102,10 @@ export async function POST(req: NextRequest) {
 
   let stripeCustomerId = workspace.stripeCustomerId as string | undefined;
   if (!stripeCustomerId) {
-    const user = await clerkClient.users.getUser(userId);
+    const user = await currentUser();
     const customer = await stripe.customers.create({
-      email: user.primaryEmailAddress?.emailAddress ?? undefined,
-      name: user.fullName ?? undefined,
+      email: user?.primaryEmailAddress?.emailAddress ?? undefined,
+      name: user?.fullName ?? undefined,
       metadata: {
         workspaceId: workspace._id,
         userId,
@@ -109,6 +130,7 @@ export async function POST(req: NextRequest) {
     customer: stripeCustomerId,
     line_items: [{ price: priceId, quantity: 1 }],
     allow_promotion_codes: false,
+    payment_method_collection: "always",
     subscription_data: {
       trial_period_days: 7,
       metadata: {
@@ -120,7 +142,7 @@ export async function POST(req: NextRequest) {
       workspaceId: workspace._id,
       plan,
     },
-    success_url: `${origin}/dashboard/billing?session_id={CHECKOUT_SESSION_ID}&success=1`,
+    success_url: `${origin}/dashboard?session_id={CHECKOUT_SESSION_ID}&success=1`,
     cancel_url: `${origin}/pricing?canceled=1`,
   });
 

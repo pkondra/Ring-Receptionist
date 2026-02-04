@@ -74,6 +74,8 @@ export const updateSubscription = mutation({
       minutesIncluded: PLAN_MINUTES[args.plan],
     });
 
+    await ctx.db.patch(user._id, { existingPlan: args.plan });
+
     return args.workspaceId;
   },
 });
@@ -95,8 +97,10 @@ export const getBillingSummary = query({
     const workspace = await ctx.db.get(workspaceId);
     if (!workspace || workspace.ownerId !== user._id) return null;
 
-    const plan = (workspace.plan as keyof typeof PLAN_MINUTES) || DEFAULT_PLAN;
-    const minutesIncluded = workspace.minutesIncluded ?? PLAN_MINUTES[plan];
+    const plan = workspace.plan as keyof typeof PLAN_MINUTES | undefined;
+    const minutesIncluded = plan
+      ? workspace.minutesIncluded ?? PLAN_MINUTES[plan]
+      : 0;
 
     const periodEnd = workspace.currentPeriodEnd ?? Date.now();
     const periodStart =
@@ -121,7 +125,7 @@ export const getBillingSummary = query({
     const minutesRemaining = Math.max(0, minutesIncluded - minutesUsed);
 
     return {
-      plan,
+      plan: plan ?? null,
       minutesIncluded,
       minutesUsed,
       minutesRemaining,

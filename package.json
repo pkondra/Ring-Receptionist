@@ -20,5 +20,8 @@
       "sharp",
       "unrs-resolver"
     ]
+  },
+  "dependencies": {
+    "framer-motion": "^12.31.0"
   }
 }

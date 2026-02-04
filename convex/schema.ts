@@ -40,7 +40,9 @@ export default defineSchema({
     clerkUserId: v.string(),
     email: v.optional(v.string()),
     name: v.optional(v.string()),
+    phone: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
+    existingPlan: v.optional(v.string()),
   })
     .index("by_token", ["tokenIdentifier"])
     .index("by_clerk_id", ["clerkUserId"]),

@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Vozexo - Tree Removal AI Receptionist",
+  title: "Tree Removal Services - AI Receptionist",
   description: "AI-powered phone receptionist for tree removal businesses",
 };
 
