@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 const MODEL = "gpt-4o-mini";
 const MAX_CHARS = 18000;
+const MAX_EXTRA_PAGES = 5;
+const MAX_SITEMAP_URLS = 40;
+const MAX_HTML_BYTES = 2_000_000;
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -217,6 +220,189 @@ const isPrivateHost = (hostname: string) => {
   return false;
 };
 
+const stripWww = (hostname: string) =>
+  hostname.toLowerCase().startsWith("www.")
+    ? hostname.toLowerCase().slice(4)
+    : hostname.toLowerCase();
+
+const isAllowedHost = (hostname: string, baseHost: string) => {
+  if (!hostname) return false;
+  if (isPrivateHost(hostname)) return false;
+  const base = stripWww(baseHost);
+  const candidate = stripWww(hostname);
+  if (candidate === base) return true;
+  if (candidate.endsWith(`.${base}`)) return true;
+  return false;
+};
+
+const normalizeInternalUrl = (raw: string, base: URL) => {
+  try {
+    const resolved = new URL(raw, base);
+    if (!["http:", "https:"].includes(resolved.protocol)) return null;
+    if (!isAllowedHost(resolved.hostname, base.hostname)) return null;
+    resolved.hash = "";
+    return resolved;
+  } catch {
+    return null;
+  }
+};
+
+const fetchHtml = async (target: URL, controller: AbortController) => {
+  const response = await fetch(target.toString(), {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (compatible; RingReceptionist/1.0; +https://ringreceptionist.com)",
+      Accept: "text/html,application/xhtml+xml",
+    },
+    signal: controller.signal,
+  });
+  if (!response.ok) return null;
+  const lengthHeader = response.headers.get("content-length");
+  if (lengthHeader && Number(lengthHeader) > MAX_HTML_BYTES) {
+    return null;
+  }
+  const html = await response.text();
+  return html.length > MAX_HTML_BYTES ? html.slice(0, MAX_HTML_BYTES) : html;
+};
+
+const extractInternalLinks = (html: string, base: URL) => {
+  const links = new Set<string>();
+  const regex = /href=["']([^"']+)["']/gi;
+  let match: RegExpExecArray | null = null;
+  while ((match = regex.exec(html))) {
+    const raw = match[1];
+    if (!raw) continue;
+    if (
+      raw.startsWith("mailto:") ||
+      raw.startsWith("tel:") ||
+      raw.startsWith("javascript:") ||
+      raw.startsWith("#")
+    ) {
+      continue;
+    }
+    const normalized = normalizeInternalUrl(raw, base);
+    if (!normalized) continue;
+    const path = normalized.pathname.toLowerCase();
+    if (
+      path.endsWith(".pdf") ||
+      path.endsWith(".jpg") ||
+      path.endsWith(".jpeg") ||
+      path.endsWith(".png") ||
+      path.endsWith(".webp")
+    ) {
+      continue;
+    }
+    links.add(normalized.toString());
+  }
+  return Array.from(links);
+};
+
+const scoreUrl = (url: string) => {
+  const lower = url.toLowerCase();
+  let score = 0;
+  const keywords = [
+    "service",
+    "services",
+    "about",
+    "contact",
+    "locations",
+    "areas",
+    "pricing",
+    "book",
+    "schedule",
+    "emergency",
+    "plumb",
+    "hvac",
+    "electric",
+    "moving",
+  ];
+  for (const keyword of keywords) {
+    if (lower.includes(keyword)) score += 2;
+  }
+  if (lower.includes("blog")) score -= 2;
+  if (lower.includes("privacy") || lower.includes("terms")) score -= 3;
+  return score;
+};
+
+const parseSitemapUrls = (xml: string) => {
+  const matches = Array.from(xml.matchAll(/<loc>([^<]+)<\/loc>/gi));
+  return matches.map((m) => m[1].trim()).filter(Boolean);
+};
+
+const fetchSitemapCandidates = async (base: URL, controller: AbortController) => {
+  const candidates = new Set<string>();
+  const origin = base.origin;
+  candidates.add(`${origin}/sitemap.xml`);
+  candidates.add(`${origin}/sitemap_index.xml`);
+
+  try {
+    const robotsUrl = new URL("/robots.txt", origin);
+    const robots = await fetch(robotsUrl.toString(), {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; RingReceptionist/1.0; +https://ringreceptionist.com)",
+      },
+      signal: controller.signal,
+    });
+    if (robots.ok) {
+      const text = await robots.text();
+      const lines = text.split(/\r?\n/);
+      for (const line of lines) {
+        const match = line.match(/^sitemap:\s*(.+)$/i);
+        if (match) {
+          const normalized = normalizeInternalUrl(match[1].trim(), base);
+          if (normalized) candidates.add(normalized.toString());
+        }
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  return Array.from(candidates);
+};
+
+const discoverSitemapUrls = async (base: URL, controller: AbortController) => {
+  const sitemapUrls = await fetchSitemapCandidates(base, controller);
+  const pageUrls: string[] = [];
+  const sitemapQueue = [...sitemapUrls];
+  let processed = 0;
+
+  while (sitemapQueue.length && processed < 3) {
+    const sitemapUrl = sitemapQueue.shift();
+    if (!sitemapUrl) break;
+    const normalized = normalizeInternalUrl(sitemapUrl, base);
+    if (!normalized) continue;
+    try {
+      const response = await fetch(normalized.toString(), {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (compatible; RingReceptionist/1.0; +https://ringreceptionist.com)",
+        },
+        signal: controller.signal,
+      });
+      if (!response.ok) continue;
+      const xml = await response.text();
+      const urls = parseSitemapUrls(xml);
+      if (xml.includes("<sitemapindex")) {
+        for (const url of urls) {
+          if (sitemapQueue.length < 4) sitemapQueue.push(url);
+        }
+      } else {
+        for (const url of urls) {
+          const page = normalizeInternalUrl(url, base);
+          if (page) pageUrls.push(page.toString());
+        }
+      }
+      processed += 1;
+    } catch {
+      continue;
+    }
+  }
+
+  return pageUrls.slice(0, MAX_SITEMAP_URLS);
+};
+
 const fallbackProfile = (text: string, title: string) => {
   const email =
     text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0] ?? null;
@@ -248,25 +434,18 @@ export async function POST(req: NextRequest) {
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12000);
+  const timeout = setTimeout(() => controller.abort(), 15000);
 
   let html = "";
   try {
-    const response = await fetch(url.toString(), {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; RingReceptionist/1.0; +https://ringreceptionist.com)",
-        Accept: "text/html,application/xhtml+xml",
-      },
-      signal: controller.signal,
-    });
-    if (!response.ok) {
+    const responseHtml = await fetchHtml(url, controller);
+    if (!responseHtml) {
       return NextResponse.json(
         { error: "Failed to fetch website" },
         { status: 502 }
       );
     }
-    html = await response.text();
+    html = responseHtml;
   } catch (err) {
     return NextResponse.json(
       { error: "Failed to fetch website" },
@@ -289,22 +468,33 @@ export async function POST(req: NextRequest) {
     "/pricing",
   ];
 
+  const candidateUrls = new Set<string>();
+  extraPaths.forEach((path) => {
+    const nextUrl = normalizeInternalUrl(path, url);
+    if (nextUrl) candidateUrls.add(nextUrl.toString());
+  });
+
+  const sitemapUrls = await discoverSitemapUrls(url, controller);
+  sitemapUrls.forEach((item) => candidateUrls.add(item));
+
+  extractInternalLinks(html, url).forEach((item) =>
+    candidateUrls.add(item)
+  );
+
+  const rankedUrls = Array.from(candidateUrls)
+    .map((item) => ({ url: item, score: scoreUrl(item) }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, MAX_EXTRA_PAGES)
+    .map((item) => item.url);
+
   const extraTexts: string[] = [];
-  for (const path of extraPaths) {
-    if (extraTexts.length >= 3) break;
+  for (const item of rankedUrls) {
+    if (extraTexts.length >= MAX_EXTRA_PAGES) break;
     try {
-      const nextUrl = new URL(path, url);
-      if (nextUrl.hostname !== url.hostname) continue;
-      const extraResponse = await fetch(nextUrl.toString(), {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (compatible; RingReceptionist/1.0; +https://ringreceptionist.com)",
-          Accept: "text/html,application/xhtml+xml",
-        },
-        signal: controller.signal,
-      });
-      if (!extraResponse.ok) continue;
-      const extraHtml = await extraResponse.text();
+      const nextUrl = normalizeInternalUrl(item, url);
+      if (!nextUrl) continue;
+      const extraHtml = await fetchHtml(nextUrl, controller);
+      if (!extraHtml) continue;
       const extraText = stripHtml(extraHtml);
       if (extraText) extraTexts.push(extraText);
     } catch {
