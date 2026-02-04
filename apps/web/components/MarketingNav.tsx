@@ -28,11 +28,11 @@ export default function MarketingNav() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#2f6b4f] text-white text-xs font-bold">
-            TR
+            RR
           </span>
           <div className="leading-tight">
             <div className="text-base font-semibold text-zinc-900">
-              Tree Removal Services
+              Ring Receptionist
             </div>
             <div className="text-xs text-zinc-500">AI Receptionist</div>
           </div>
@@ -56,24 +56,36 @@ export default function MarketingNav() {
             </button>
             {solutionsOpen && (
               <div className="absolute top-full left-0 mt-2 w-56 rounded-xl bg-white shadow-lg border border-zinc-200 py-2 z-50">
-                <button
-                  onClick={() => scrollToSection('why-section')}
-                  className="block w-full text-left px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
+                <Link
+                  href="/services/plumbers"
+                  className="block px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
                 >
-                  Tree Removal
-                </button>
-                <button
-                  onClick={() => scrollToSection('why-section')}
-                  className="block w-full text-left px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
+                  Plumbers
+                </Link>
+                <Link
+                  href="/services/hvac"
+                  className="block px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
                 >
-                  Landscaping
-                </button>
-                <button
-                  onClick={() => scrollToSection('why-section')}
-                  className="block w-full text-left px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
+                  HVAC
+                </Link>
+                <Link
+                  href="/services/electricians"
+                  className="block px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
                 >
-                  Lawn Care
-                </button>
+                  Electricians
+                </Link>
+                <Link
+                  href="/services/movers"
+                  className="block px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
+                >
+                  Movers
+                </Link>
+                <Link
+                  href="/services/tree"
+                  className="block px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
+                >
+                  Tree Services
+                </Link>
               </div>
             )}
           </div>
@@ -144,6 +156,41 @@ export default function MarketingNav() {
           <nav className="flex flex-col px-6 py-4 space-y-4 text-sm font-medium text-zinc-600">
             <Link href="/" className="hover:text-zinc-900 transition-colors" onClick={() => setMobileMenuOpen(false)}>
               Home
+            </Link>
+            <Link
+              href="/services/plumbers"
+              className="hover:text-zinc-900 transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Plumbers
+            </Link>
+            <Link
+              href="/services/hvac"
+              className="hover:text-zinc-900 transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              HVAC
+            </Link>
+            <Link
+              href="/services/electricians"
+              className="hover:text-zinc-900 transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Electricians
+            </Link>
+            <Link
+              href="/services/movers"
+              className="hover:text-zinc-900 transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Movers
+            </Link>
+            <Link
+              href="/services/tree"
+              className="hover:text-zinc-900 transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Tree Services
             </Link>
             <button
               onClick={() => scrollToSection('features-section')}

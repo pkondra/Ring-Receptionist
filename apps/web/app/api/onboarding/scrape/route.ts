@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
     const response = await fetch(url.toString(), {
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (compatible; TreeRemovalReceptionist/1.0; +https://treeremovalreceptionist.com)",
+          "Mozilla/5.0 (compatible; RingReceptionist/1.0; +https://ringreceptionist.com)",
         Accept: "text/html,application/xhtml+xml",
       },
       signal: controller.signal,
@@ -171,7 +171,7 @@ export async function POST(req: NextRequest) {
       {
         role: "system",
         content:
-          "Extract a concise business profile from the website content. Use null for unknown fields and empty arrays where needed. Tone should reflect the site's copy if possible.",
+          "Extract a concise business profile from the website content. Use null for unknown fields and empty arrays where needed. Tone should reflect the site's copy if possible. The services array should include specific sub-services or offerings (e.g., blocked drain cleaning, geyser repair) rather than generic categories. key_points should capture differentiators like service area, warranties, scheduling, pricing transparency, or 24/7 availability.",
       },
       {
         role: "user",

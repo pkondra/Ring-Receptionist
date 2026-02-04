@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
       {
         role: "system",
         content:
-          "Extract structured lead details from the transcript. Return null for any field not explicitly provided or confidently inferred. Keep values concise.",
+          "Extract structured lead details from the transcript. Return null for any field not explicitly provided or confidently inferred. Keep values concise. For numberOfTrees, return the job count or units mentioned (trees, rooms, items, trucks, loads, etc.).",
       },
       {
         role: "user",

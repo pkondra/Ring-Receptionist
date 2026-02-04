@@ -64,11 +64,11 @@ export default function VoiceChatLab({
       newFacts.push({ key: "Name", value: fields.callerName });
     if (fields.phone) newFacts.push({ key: "Phone", value: fields.phone });
     if (fields.address) newFacts.push({ key: "Address", value: fields.address });
-    if (fields.reason) newFacts.push({ key: "Reason", value: fields.reason });
+    if (fields.reason) newFacts.push({ key: "Service", value: fields.reason });
     if (fields.numberOfTrees)
-      newFacts.push({ key: "Trees", value: fields.numberOfTrees });
+      newFacts.push({ key: "Job Count", value: fields.numberOfTrees });
     if (fields.sizeEstimate)
-      newFacts.push({ key: "Size", value: fields.sizeEstimate });
+      newFacts.push({ key: "Size / Scope", value: fields.sizeEstimate });
     if (fields.urgency) newFacts.push({ key: "Urgency", value: fields.urgency });
     if (fields.hazards) newFacts.push({ key: "Hazards", value: fields.hazards });
     if (fields.accessConstraints)

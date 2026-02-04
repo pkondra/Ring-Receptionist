@@ -20,8 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tree Removal Services - AI Receptionist",
-  description: "AI-powered phone receptionist for tree removal businesses",
+  title: "Ring Receptionist - AI Receptionist for Service Businesses",
+  description: "AI receptionist that answers calls and turns them into leads for service businesses.",
 };
 
 export default function RootLayout({

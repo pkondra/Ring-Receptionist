@@ -70,7 +70,7 @@ export default function DashboardLayout({
         <div className="surface-card px-4 py-4 mb-5">
           <Link href="/dashboard" className="block">
             <h2 className="text-xl font-semibold text-zinc-900 font-display">
-              Tree Removal Services
+              Ring Receptionist
             </h2>
             <p className="text-xs text-zinc-500 mt-1">
               AI receptionist studio

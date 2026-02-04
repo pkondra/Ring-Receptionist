@@ -29,7 +29,7 @@ const plans: Plan[] = [
     minutes: 150,
     overage: 0.45,
     highlight: false,
-    description: "Perfect for solo tree service operators getting started.",
+    description: "Perfect for solo service operators getting started.",
     features: [
       "AI Receptionist (1 agent)",
       "1 phone number",
@@ -50,7 +50,7 @@ const plans: Plan[] = [
     minutes: 300,
     overage: 0.4,
     highlight: true,
-    description: "For growing tree companies handling higher call volume.",
+    description: "For growing service businesses handling higher call volume.",
     features: [
       "Up to 20 simultaneous calls",
       "Call forwarding to staff",
@@ -146,7 +146,7 @@ export default function PricingPage() {
                 Pricing
               </p>
               <h1 className="mt-2 text-4xl md:text-5xl font-semibold font-display">
-                Simple plans for tree service teams
+                Simple plans for service businesses
               </h1>
               <p className="mt-3 text-base text-zinc-600 max-w-2xl">
                 All plans are minute-based with one business per account and one phone
@@ -277,6 +277,9 @@ export default function PricingPage() {
 
           <div className="mt-8 text-sm text-zinc-500">
             Usage tracked per account. Remaining minutes are shown inside the dashboard.
+          </div>
+          <div className="mt-2 text-xs text-zinc-500">
+            Card required to start trial. $0 due today. Subscription begins after 7 days.
           </div>
 
           <div className="mt-6">

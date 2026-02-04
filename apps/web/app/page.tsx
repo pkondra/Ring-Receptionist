@@ -5,6 +5,7 @@ import MarketingNav from "@/components/MarketingNav";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { servicePages } from "@/lib/servicePages";
 
 const stats = [
   {
@@ -13,15 +14,15 @@ const stats = [
   },
   {
     value: "35%",
-    label: "of tree emergencies occur after business hours",
+    label: "of inbound calls come after hours",
   },
   {
     value: "$1,200",
-    label: "average revenue from a single emergency call",
+    label: "average job value lost to missed calls",
   },
   {
     value: "85%",
-    label: "of homeowners choose whoever picks up first",
+    label: "of customers choose whoever answers first",
   },
 ];
 
@@ -33,7 +34,7 @@ const painPoints = [
       </svg>
     ),
     title: "Voicemails Don't Convert",
-    body: "When a massive oak branch crashes through a roof, that homeowner isn't leaving a message. They're dialing the next arborist.",
+    body: "When a homeowner has an urgent problem, they rarely leave a message. They call the next business on the list.",
     iconBg: "bg-rose-100",
     iconColor: "text-rose-500",
   },
@@ -43,8 +44,8 @@ const painPoints = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
       </svg>
     ),
-    title: "Storms Strike at Night",
-    body: "The worst tree damage happens during evening thunderstorms. Your phone rings at 11 PM—are you answering?",
+    title: "After-Hours Peaks",
+    body: "Nights and weekends create the highest-value calls. Your phone rings at 11 PM—are you answering?",
     iconBg: "bg-rose-100",
     iconColor: "text-rose-500",
   },
@@ -54,8 +55,8 @@ const painPoints = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     ),
-    title: "High-Value Work Walks Away",
-    body: "Emergency tree removal isn't cheap. Each unanswered call is potentially thousands in lost revenue going to your competition.",
+    title: "High-Value Jobs Walk Away",
+    body: "Emergency service isn't cheap. Each unanswered call can be thousands in lost revenue going to your competition.",
     iconBg: "bg-amber-100",
     iconColor: "text-amber-600",
   },
@@ -65,8 +66,8 @@ const painPoints = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
       </svg>
     ),
-    title: "Your Hands Are Full",
-    body: "Hard to grab your phone when you're operating a bucket truck or rigging a dangerous limb. Those calls go unanswered.",
+    title: "You're On the Job",
+    body: "Hard to grab your phone when you're on a ladder, under a sink, or in a truck. Those calls go unanswered.",
     iconBg: "bg-rose-100",
     iconColor: "text-rose-500",
   },
@@ -80,7 +81,7 @@ const capabilities = [
       </svg>
     ),
     title: "Urgent Call Routing",
-    body: "Instantly recognizes hazardous situations—downed power lines, trees on structures, blocked roads—and alerts your on-call crew.",
+    body: "Recognizes emergencies and flags them immediately so your team can respond fast.",
   },
   {
     icon: (
@@ -89,7 +90,7 @@ const capabilities = [
       </svg>
     ),
     title: "Smart Scheduling",
-    body: "Checks your availability and books estimates directly into your calendar. Wake up to a full schedule.",
+    body: "Checks availability and books estimates directly into your calendar.",
   },
   {
     icon: (
@@ -98,8 +99,8 @@ const capabilities = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
     ),
-    title: "Territory Verification",
-    body: "Confirms callers are within your service radius before booking. No more wasted drive time to jobs outside your zone.",
+    title: "Service Area Check",
+    body: "Confirms callers are within your service radius before booking.",
   },
   {
     icon: (
@@ -108,7 +109,7 @@ const capabilities = [
       </svg>
     ),
     title: "Junk Call Blocker",
-    body: "Automatically screens out solicitors, robocalls, and marketing pitches. Your time is spent on real customers only.",
+    body: "Automatically screens out solicitors, robocalls, and spam.",
   },
   {
     icon: (
@@ -117,7 +118,7 @@ const capabilities = [
       </svg>
     ),
     title: "Round-the-Clock Coverage",
-    body: "Weekends, holidays, 3 AM ice storms—every call gets answered professionally, every single time.",
+    body: "Weekends, holidays, late nights—every call gets answered professionally.",
   },
   {
     icon: (
@@ -126,18 +127,18 @@ const capabilities = [
       </svg>
     ),
     title: "Works With Your Tools",
-    body: "Connects seamlessly with Arborgold, Jobber, ServiceTitan, Google Calendar, and more.",
+    body: "Connects with Jobber, ServiceTitan, Housecall Pro, and Google Calendar.",
   },
 ];
 
 const beforeList = [
   {
-    title: "Storm Calls Go to Voicemail",
-    body: "A severe weather alert hits your area. Phones light up but you're already on a job. Those callers move on.",
+    title: "Urgent Calls Go to Voicemail",
+    body: "A customer needs help now. Phones light up while you're already on a job. Those callers move on.",
   },
   {
-    title: "Chainsaw in Hand, Phone in Pocket",
-    body: "You hear the buzz but can't stop mid-cut. By the time you check, they've already hired someone else.",
+    title: "Hands Full, Phone in Pocket",
+    body: "You hear the buzz but can't stop mid-task. By the time you check, they've hired someone else.",
   },
   {
     title: "Never Truly Off the Clock",
@@ -151,12 +152,12 @@ const beforeList = [
 
 const afterList = [
   {
-    title: "Every Storm Call Captured",
-    body: "AI picks up instantly, collects all the details, and dispatches your team for true emergencies.",
+    title: "Every Urgent Call Captured",
+    body: "AI picks up instantly, collects all the details, and flags true emergencies.",
   },
   {
     title: "Stay Focused, Stay Safe",
-    body: "Keep both hands on the equipment. Customer details are waiting in your dashboard when you're done.",
+    body: "Keep both hands on the work. Customer details are waiting in your dashboard when you're done.",
   },
   {
     title: "Reclaim Your Personal Time",
@@ -193,7 +194,7 @@ const compareRows = [
     label: "Industry Knowledge",
     fullTime: true,
     callCenter: false,
-    ours: "Trained on arboriculture",
+    ours: "Trained on your services",
     oursIcon: true,
   },
   {
@@ -215,31 +216,31 @@ const compareRows = [
 const testimonials = [
   {
     quote:
-      "Since switching, I haven't missed a single storm call. Last month alone that meant three emergency removals I would have lost. The ROI is obvious.",
-    name: "Marcus Chen",
-    meta: "Chen's Tree Experts • Portland, OR",
+      "We stopped missing emergency calls after hours. The ROI showed up in the first week.",
+    name: "Alyssa Gomez",
+    meta: "Gomez Plumbing • Portland, OR",
     avatar: "MC",
   },
   {
     quote:
-      "My wife noticed the difference first—I'm actually present at family dinners now. The AI handles everything and the summaries are incredibly detailed.",
+      "My team finally focuses on the job instead of the phone. The summaries are clear and actionable.",
     name: "Robert Okonkwo",
-    meta: "Okonkwo Arborist Services • Atlanta, GA",
+    meta: "Okonkwo HVAC • Atlanta, GA",
     avatar: "RO",
   },
   {
     quote:
-      "Clients constantly compliment our 'office staff.' When I tell them it's AI, they don't believe me. It's that natural.",
+      "Customers think it's a real receptionist. That's exactly what we wanted.",
     name: "Sarah Blackwood",
-    meta: "Blackwood Tree Care • Minneapolis, MN",
+    meta: "Blackwood Electric • Minneapolis, MN",
     avatar: "SB",
   },
 ];
 
 const faqs = [
   {
-    q: "Is the AI trained on tree care terminology?",
-    a: "Absolutely. It understands arborist-specific language—crown reduction, hazard assessment, cabling, stump grinding, root pruning—and can intelligently triage based on urgency and job type.",
+    q: "Is the AI trained on service business terminology?",
+    a: "Yes. It understands common terms for plumbing, HVAC, electrical, moving, and tree services, and can triage urgency by job type.",
   },
   {
     q: "Can callers tell they're speaking with AI?",
@@ -247,7 +248,7 @@ const faqs = [
   },
   {
     q: "What details does it gather from callers?",
-    a: "Contact info, property address, tree species and size when known, nature of the issue, hazard indicators, access considerations, timeline preferences, and how they'd like to be reached.",
+    a: "Contact info, service address, nature of the issue, access considerations, timeline preferences, and how they'd like to be reached.",
   },
   {
     q: "How do I review my calls?",
@@ -323,7 +324,7 @@ export default function Home() {
               className="inline-flex items-center gap-2.5 rounded-full border border-emerald-300/60 bg-white/80 backdrop-blur-sm px-5 py-2.5 text-sm font-medium text-zinc-800 shadow-sm"
             >
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Built for Tree Care Professionals
+              Built for Service Businesses
             </motion.span>
 
             {/* Main Heading */}
@@ -333,9 +334,11 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="mt-10 text-5xl md:text-6xl lg:text-7xl font-semibold text-zinc-900 font-display leading-[1.1] tracking-tight"
             >
-              Never Miss Another
+              Ring Receptionist
               <br />
-              <span className="text-emerald-600">Emergency Call</span>
+              <span className="text-emerald-600">
+                Automatically Answers Calls
+              </span>
             </motion.h1>
 
             {/* Subtitle */}
@@ -345,7 +348,8 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="mt-8 text-lg md:text-xl text-zinc-600 max-w-2xl mx-auto leading-relaxed"
             >
-              The AI receptionist that answers every call, qualifies leads, and handles emergencies—so you can focus on the job, not the phone.
+              Automatically answers calls and turns them into leads—so you can
+              focus on the job, not the phone.
             </motion.p>
 
             {/* Feature badges */}
@@ -387,7 +391,7 @@ export default function Home() {
                   href="/get-started"
                   className="group inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-base font-semibold bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-900/20 transition-all hover:shadow-xl hover:shadow-zinc-900/25"
                 >
-                  Start Free Trial
+                  Get Started
                   <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
@@ -439,7 +443,7 @@ export default function Home() {
                 ))}
               </div>
               <p className="text-sm text-zinc-600">
-                <span className="font-semibold text-zinc-900">500+</span> tree care professionals trust us with their calls
+                <span className="font-semibold text-zinc-900">500+</span> service businesses trust us with their calls
               </p>
             </motion.div>
 
@@ -490,7 +494,37 @@ export default function Home() {
           </motion.div>
         </section>
 
-        {/* Why Tree Companies Need Section */}
+        {/* Service Industries */}
+        <section className="px-6 py-16 md:py-20 bg-[var(--surface)]">
+          <div className="mx-auto max-w-6xl">
+            <div className="text-center max-w-2xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-semibold font-display">
+                Built for Service Businesses
+              </h2>
+              <p className="mt-3 text-sm text-zinc-600">
+                Same platform, tailored language. Choose your industry below.
+              </p>
+            </div>
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              {servicePages.map((service) => (
+                <Link
+                  key={service.slug}
+                  href={`/services/${service.slug}`}
+                  className="surface-card p-5 text-center hover:-translate-y-1 transition-transform"
+                >
+                  <div className="text-sm font-semibold text-zinc-900">
+                    {service.label}
+                  </div>
+                  <div className="mt-2 text-xs text-zinc-500">
+                    {service.heroTag}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Why Service Businesses Need Section */}
         <section id="why-section" className="px-6 py-20 md:py-28">
           <div className="mx-auto max-w-6xl">
             <motion.div
@@ -567,7 +601,7 @@ export default function Home() {
                 Everything Your Phone System Should Do
               </h2>
               <p className="mt-5 text-lg text-zinc-600">
-                Built specifically for tree care businesses with features that actually matter.
+                Built specifically for service businesses with features that actually matter.
               </p>
             </motion.div>
             <motion.div
@@ -740,7 +774,7 @@ export default function Home() {
                 </div>
                 <div className="p-5 text-center bg-emerald-600 text-white">
                   <div className="text-xs text-emerald-100 uppercase tracking-wider">AI-Powered</div>
-                  <div className="font-semibold mt-1">Tree Receptionist</div>
+                  <div className="font-semibold mt-1">Ring Receptionist</div>
                 </div>
               </div>
               {/* Table Body */}
@@ -812,7 +846,7 @@ export default function Home() {
                 Customer Stories
               </span>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold font-display leading-tight">
-                Trusted by Tree Care<br className="hidden md:block" /> Professionals Nationwide
+                Trusted by Service<br className="hidden md:block" /> Professionals Nationwide
               </h2>
             </motion.div>
             <motion.div
@@ -949,7 +983,7 @@ export default function Home() {
               Ready to Never Miss<br className="hidden md:block" /> Another Call?
             </h2>
             <p className="mt-5 text-lg text-zinc-400 max-w-xl mx-auto">
-              Join 500+ tree care professionals who capture every opportunity. Start your free trial today—no credit card required.
+              Join 500+ service businesses who capture every opportunity. Start your free trial today—card required, $0 today.
             </p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -963,7 +997,7 @@ export default function Home() {
                   href="/get-started"
                   className="group inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-base font-semibold bg-white text-zinc-900 hover:bg-zinc-100 shadow-lg transition-all"
                 >
-                  Start Free Trial
+                  Get Started
                   <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
@@ -1004,7 +1038,7 @@ export default function Home() {
                 <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                No credit card required
+                Card required, $0 today
               </span>
               <span className="flex items-center gap-2">
                 <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1035,10 +1069,10 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                   </svg>
                 </div>
-                <span className="text-lg font-semibold">Tree Removal Receptionist</span>
+                <span className="text-lg font-semibold">Ring Receptionist</span>
               </div>
               <p className="text-sm text-zinc-400 max-w-sm leading-relaxed">
-                AI-powered phone answering designed specifically for tree care businesses. Capture every lead, handle emergencies, grow your operation.
+                AI-powered phone answering designed for service businesses. Capture every lead, handle emergencies, grow your operation.
               </p>
               <div className="flex gap-3">
                 <a href="#" className="w-9 h-9 rounded-full bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white transition-all">
@@ -1091,7 +1125,7 @@ export default function Home() {
           <div className="mt-14 pt-8 border-t border-zinc-800/80">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="text-sm text-zinc-500">
-                © 2026 Tree Removal Receptionist. All rights reserved.
+                © 2026 Ring Receptionist. All rights reserved.
               </div>
               <div className="flex flex-wrap justify-center gap-6 text-sm text-zinc-500">
                 <span className="flex items-center gap-2">

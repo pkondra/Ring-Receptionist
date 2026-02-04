@@ -80,9 +80,30 @@ const buildWebsiteNotes = (profile: Profile) => {
   return notes.join("\n");
 };
 
-const mergeCustomContext = (notes: string) => {
-  if (!notes) return DEFAULT_CUSTOM_CONTEXT;
-  return `${DEFAULT_CUSTOM_CONTEXT}\n\nWebsite Notes\n${notes}`;
+const buildServiceLine = (services: string[]) => {
+  const cleaned = services
+    .map((service) => service.trim())
+    .filter(Boolean);
+  if (cleaned.length === 0) {
+    return "4. Service needed (plumbing, HVAC, electrical, moving, tree care, etc.)";
+  }
+  return `4. Service needed (plumbing, HVAC, electrical, moving, tree care, etc.; subtypes: ${cleaned.join(
+    ", "
+  )})`;
+};
+
+const applyServiceLine = (context: string, services: string[]) =>
+  context.replace(
+    /4\. Service needed \([^)]+\)/,
+    buildServiceLine(services)
+  );
+
+const mergeCustomContext = (notes: string, profile?: Profile) => {
+  const context = profile
+    ? applyServiceLine(DEFAULT_CUSTOM_CONTEXT, profile.services ?? [])
+    : DEFAULT_CUSTOM_CONTEXT;
+  if (!notes) return context;
+  return `${context}\n\nWebsite Notes\n${notes}`;
 };
 
 export default function GetStartedPage() {
@@ -203,7 +224,7 @@ export default function GetStartedPage() {
               : prev.toneDescription,
           customContext: customContextTouched
             ? prev.customContext
-            : mergeCustomContext(notes),
+            : mergeCustomContext(notes, nextProfile),
         };
       });
       setStep(2);
@@ -408,7 +429,7 @@ export default function GetStartedPage() {
                     <input
                       value={website}
                       onChange={(e) => setWebsite(e.target.value)}
-                      placeholder="https://treeremovalreceptionist.com"
+                      placeholder="https://ringreceptionist.com"
                       className="w-full rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm"
                     />
                     <div className="text-xs text-zinc-500">

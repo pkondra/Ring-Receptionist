@@ -59,7 +59,7 @@ export default function ContactPage() {
               </h1>
 
               <p className="mt-4 text-lg text-zinc-600 max-w-md">
-                Have questions about how our AI receptionist can help your tree care business?
+                Have questions about how our AI receptionist can help your service business?
                 We'd love to hear from you.
               </p>
 
@@ -78,7 +78,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-zinc-900">Email Us</h3>
-                    <p className="text-zinc-600">support@treeremovalreceptionist.com</p>
+                    <p className="text-zinc-600">support@ringreceptionist.com</p>
                     <p className="text-sm text-zinc-500 mt-1">We respond within 24 hours</p>
                   </div>
                 </motion.div>
@@ -116,7 +116,7 @@ export default function ContactPage() {
                   <div>
                     <h3 className="font-semibold text-zinc-900">Location</h3>
                     <p className="text-zinc-600">Austin, Texas</p>
-                    <p className="text-sm text-zinc-500 mt-1">Serving tree companies nationwide</p>
+                    <p className="text-sm text-zinc-500 mt-1">Serving service businesses nationwide</p>
                   </div>
                 </motion.div>
               </div>
@@ -135,7 +135,7 @@ export default function ContactPage() {
                     href="/get-started"
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-zinc-200 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
                   >
-                    Start Free Trial
+                    Get Started
                   </Link>
                   <Link
                     href="/"
@@ -247,7 +247,7 @@ export default function ContactPage() {
                           value={formData.company}
                           onChange={handleChange}
                           className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-white text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow"
-                          placeholder="Your Tree Company"
+                          placeholder="Your Company"
                         />
                       </div>
                     </div>
@@ -303,7 +303,7 @@ export default function ContactPage() {
         <div className="mx-auto max-w-6xl px-6 py-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-sm text-zinc-500">
-              © 2026 Tree Removal Services. All rights reserved.
+              © 2026 Ring Receptionist. All rights reserved.
             </div>
             <div className="flex items-center gap-6 text-sm text-zinc-500">
               <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>

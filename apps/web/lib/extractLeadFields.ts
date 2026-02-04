@@ -33,15 +33,26 @@ const URGENCY_KEYWORDS = [
   "dangerous",
 ];
 const HAZARD_KEYWORDS = [
+  "gas leak",
+  "smell gas",
+  "carbon monoxide",
+  "sparks",
+  "electrical",
   "power line",
   "powerline",
-  "electrical",
+  "downed line",
+  "power outage",
+  "flooding",
+  "burst pipe",
+  "fire",
+  "smoke",
   "tree on house",
   "tree fell on",
   "blocked road",
   "road blocked",
   "leaning on",
   "about to fall",
+  "no heat",
 ];
 const SIZE_KEYWORDS = [
   "small",
@@ -54,6 +65,13 @@ const SIZE_KEYWORDS = [
   "foot",
   "meters",
   "metres",
+  "sq ft",
+  "square feet",
+  "square",
+  "yards",
+  "yard",
+  "tons",
+  "ton",
 ];
 const TIME_KEYWORDS = [
   "monday",
@@ -147,12 +165,12 @@ export function extractLeadFields(
     fields.address = addressMatch[0];
   }
 
-  // Number of trees: look for digit + "tree(s)"
-  const treeCountMatch = allText.match(
-    /(\d+)\s+tree/i
+  // Job count / units: look for digit + unit
+  const jobCountMatch = allText.match(
+    /(\d+)\s+(trees?|units?|items?|rooms?|jobs?|loads?|trucks?|stumps?)/i
   );
-  if (treeCountMatch) {
-    fields.numberOfTrees = treeCountMatch[1];
+  if (jobCountMatch) {
+    fields.numberOfTrees = jobCountMatch[1];
   }
 
   return fields;

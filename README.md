@@ -1,4 +1,4 @@
-# Tree Removal Services - AI Receptionist
+# Ring Receptionist - AI Receptionist
 
 AI-powered phone receptionist SaaS for tree removal businesses. **WIP**
 

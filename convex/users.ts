@@ -60,7 +60,7 @@ export const ensureAccountSetup = mutation({
       }
     } else {
       workspaceId = await ctx.db.insert("workspaces", {
-        name: "My Tree Service",
+        name: "My Service Business",
         ownerId: userId,
       });
     }
@@ -89,12 +89,12 @@ export const ensureAccountSetup = mutation({
             { key: "phone", label: "Best Callback Phone", required: true },
             {
               key: "address",
-              label: "Job Address / Neighborhood + City",
+              label: "Service Address / Area",
               required: true,
             },
             {
               key: "reason",
-              label: "Service Needed (Removal/Trim/Stump/Emergency)",
+              label: "Service Needed (Plumbing/HVAC/Electrical/etc.)",
               required: true,
             },
             {
@@ -104,17 +104,17 @@ export const ensureAccountSetup = mutation({
             },
             {
               key: "numberOfTrees",
-              label: "How Many Trees (if mentioned)",
+              label: "Job Count / Units (if mentioned)",
               required: false,
             },
             {
               key: "sizeEstimate",
-              label: "Approx Tree Size / Height",
+              label: "Job Size / Scope",
               required: false,
             },
             {
               key: "hazards",
-              label: "Hazards (Power Lines/Leaning)",
+              label: "Hazards or Constraints",
               required: false,
             },
             {
@@ -135,14 +135,14 @@ export const ensureAccountSetup = mutation({
           ],
           emergencyProtocol: {
             triggers: [
-              { keyword: "tree on house", action: "markUrgent" },
-              { keyword: "power line", action: "markUrgent" },
-              { keyword: "downed power line", action: "suggestDispatch" },
-              { keyword: "blocked road", action: "markUrgent" },
               { keyword: "emergency", action: "suggestDispatch" },
+              { keyword: "gas leak", action: "markUrgent" },
+              { keyword: "power outage", action: "markUrgent" },
+              { keyword: "flooding", action: "suggestDispatch" },
+              { keyword: "no heat", action: "suggestDispatch" },
             ],
             instructions:
-              "If caller describes hazards such as a tree on a house, downed power line, or blocked road: immediately mark as urgent, offer to note details for emergency dispatch, and inform the caller someone will follow up as soon as possible. Placeholder for transfer logic.",
+              "If the caller describes a safety risk or urgent situation: immediately mark as urgent, offer to note details for emergency dispatch, and inform the caller someone will follow up as soon as possible. Placeholder for transfer logic.",
           },
         });
       } else if (
@@ -165,12 +165,12 @@ export const ensureAccountSetup = mutation({
             { key: "phone", label: "Best Callback Phone", required: true },
             {
               key: "address",
-              label: "Job Address / Neighborhood + City",
+              label: "Service Address / Area",
               required: true,
             },
             {
               key: "reason",
-              label: "Service Needed (Removal/Trim/Stump/Emergency)",
+              label: "Service Needed (Plumbing/HVAC/Electrical/etc.)",
               required: true,
             },
             {
@@ -180,17 +180,17 @@ export const ensureAccountSetup = mutation({
             },
             {
               key: "numberOfTrees",
-              label: "How Many Trees (if mentioned)",
+              label: "Job Count / Units (if mentioned)",
               required: false,
             },
             {
               key: "sizeEstimate",
-              label: "Approx Tree Size / Height",
+              label: "Job Size / Scope",
               required: false,
             },
             {
               key: "hazards",
-              label: "Hazards (Power Lines/Leaning)",
+              label: "Hazards or Constraints",
               required: false,
             },
             {
@@ -209,6 +209,17 @@ export const ensureAccountSetup = mutation({
               required: false,
             },
           ],
+          emergencyProtocol: {
+            triggers: [
+              { keyword: "emergency", action: "suggestDispatch" },
+              { keyword: "gas leak", action: "markUrgent" },
+              { keyword: "power outage", action: "markUrgent" },
+              { keyword: "flooding", action: "suggestDispatch" },
+              { keyword: "no heat", action: "suggestDispatch" },
+            ],
+            instructions:
+              "If the caller describes a safety risk or urgent situation: immediately mark as urgent, offer to note details for emergency dispatch, and inform the caller someone will follow up as soon as possible. Placeholder for transfer logic.",
+          },
         });
       }
     }

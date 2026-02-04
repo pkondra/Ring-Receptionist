@@ -108,7 +108,7 @@ export default function NewAgentPage() {
             type="text"
             value={agentName}
             onChange={(e) => setAgentName(e.target.value)}
-            placeholder="e.g., TreeLine Receptionist"
+            placeholder="e.g., Ring Receptionist"
             required
             className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
           />
@@ -122,7 +122,7 @@ export default function NewAgentPage() {
             type="text"
             value={businessName}
             onChange={(e) => setBusinessName(e.target.value)}
-            placeholder="e.g., TreeLine Tree Removal"
+            placeholder="e.g., Acme Plumbing Co."
             required
             className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
           />
