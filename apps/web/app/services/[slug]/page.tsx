@@ -8,12 +8,13 @@ export function generateStaticParams() {
   return servicePages.map((page) => ({ slug: page.slug }));
 }
 
-export default function ServicePage({
+export default async function ServicePage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const page = getServicePage(params.slug);
+  const { slug } = await params;
+  const page = getServicePage(slug);
   if (!page) return notFound();
 
   return <ServicePageContent page={page} />;
