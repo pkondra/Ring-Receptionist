@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const MODEL = "gpt-4o-mini";
-const MAX_CHARS = 12000;
+const MAX_CHARS = 18000;
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -57,6 +57,134 @@ const stripHtml = (html: string) =>
 const extractTitle = (html: string) => {
   const match = html.match(/<title[^>]*>([^<]*)<\/title>/i);
   return match?.[1]?.trim() ?? "";
+};
+
+const extractMeta = (html: string, name: string) => {
+  const regex = new RegExp(
+    `<meta[^>]+(?:name|property)=[\"']${name}[\"'][^>]*content=[\"']([^\"']+)[\"'][^>]*>`,
+    "i"
+  );
+  const match = html.match(regex);
+  return match?.[1]?.trim() ?? "";
+};
+
+const extractJsonLd = (html: string) => {
+  const scripts = Array.from(
+    html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)
+  );
+  const nodes: any[] = [];
+  for (const match of scripts) {
+    const raw = match[1]?.trim();
+    if (!raw) continue;
+    try {
+      const parsed = JSON.parse(raw);
+      const collect = (node: any) => {
+        if (!node) return;
+        if (Array.isArray(node)) {
+          node.forEach(collect);
+          return;
+        }
+        if (node["@graph"]) {
+          collect(node["@graph"]);
+          return;
+        }
+        if (typeof node === "object") {
+          nodes.push(node);
+        }
+      };
+      collect(parsed);
+    } catch {
+      continue;
+    }
+  }
+  return nodes;
+};
+
+const formatAddress = (address: any) => {
+  if (!address) return null;
+  if (typeof address === "string") return address;
+  const parts = [
+    address.streetAddress,
+    address.addressLocality,
+    address.addressRegion,
+    address.postalCode,
+    address.addressCountry,
+  ].filter(Boolean);
+  return parts.length ? parts.join(", ") : null;
+};
+
+const extractServicesFromJsonLd = (node: any) => {
+  const services: string[] = [];
+  const add = (value: any) => {
+    if (!value) return;
+    if (Array.isArray(value)) {
+      value.forEach(add);
+      return;
+    }
+    if (typeof value === "string") {
+      services.push(value);
+      return;
+    }
+    if (typeof value === "object") {
+      if (value.name) services.push(value.name);
+      if (value.itemListElement) add(value.itemListElement);
+      if (value.itemOffered) add(value.itemOffered);
+    }
+  };
+  add(node.hasOfferCatalog);
+  add(node.makesOffer);
+  add(node.serviceType);
+  return services;
+};
+
+const findBusinessNode = (nodes: any[]) => {
+  const preferredTypes = [
+    "LocalBusiness",
+    "ProfessionalService",
+    "Plumber",
+    "HVACBusiness",
+    "Electrician",
+    "MovingCompany",
+    "HomeAndConstructionBusiness",
+  ];
+  return nodes.find((node) => {
+    const type = node["@type"];
+    if (!type) return false;
+    const types = Array.isArray(type) ? type : [type];
+    return types.some((t) => preferredTypes.includes(String(t)));
+  });
+};
+
+const buildProfileHints = (html: string) => {
+  const title = extractTitle(html);
+  const description =
+    extractMeta(html, "description") || extractMeta(html, "og:description");
+  const siteName = extractMeta(html, "og:site_name");
+
+  const nodes = extractJsonLd(html);
+  const business = findBusinessNode(nodes) ?? nodes[0];
+
+  const jsonLd = business
+    ? {
+        name: business.name ?? null,
+        slogan: business.slogan ?? null,
+        description: business.description ?? null,
+        telephone: business.telephone ?? null,
+        email: business.email ?? null,
+        openingHours: business.openingHours ?? null,
+        areaServed:
+          business.areaServed?.name ??
+          business.areaServed ??
+          business.serviceArea?.name ??
+          business.serviceArea ??
+          null,
+        address: formatAddress(business.address),
+        priceRange: business.priceRange ?? null,
+        services: extractServicesFromJsonLd(business),
+      }
+    : null;
+
+  return { title, description, siteName, jsonLd };
 };
 
 const normalizeUrl = (raw: string) => {
@@ -120,7 +248,7 @@ export async function POST(req: NextRequest) {
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
+  const timeout = setTimeout(() => controller.abort(), 12000);
 
   let html = "";
   try {
@@ -148,9 +276,45 @@ export async function POST(req: NextRequest) {
     clearTimeout(timeout);
   }
 
-  const title = extractTitle(html);
+  const hints = buildProfileHints(html);
+  const title = hints.title || extractTitle(html);
+
+  const extraPaths = [
+    "/services",
+    "/our-services",
+    "/service-areas",
+    "/about",
+    "/contact",
+    "/locations",
+    "/pricing",
+  ];
+
+  const extraTexts: string[] = [];
+  for (const path of extraPaths) {
+    if (extraTexts.length >= 3) break;
+    try {
+      const nextUrl = new URL(path, url);
+      if (nextUrl.hostname !== url.hostname) continue;
+      const extraResponse = await fetch(nextUrl.toString(), {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (compatible; RingReceptionist/1.0; +https://ringreceptionist.com)",
+          Accept: "text/html,application/xhtml+xml",
+        },
+        signal: controller.signal,
+      });
+      if (!extraResponse.ok) continue;
+      const extraHtml = await extraResponse.text();
+      const extraText = stripHtml(extraHtml);
+      if (extraText) extraTexts.push(extraText);
+    } catch {
+      continue;
+    }
+  }
+
   const text = stripHtml(html);
-  const sample = text.slice(0, MAX_CHARS);
+  const combined = [text, ...extraTexts].join("\n");
+  const sample = combined.slice(0, MAX_CHARS);
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -175,7 +339,12 @@ export async function POST(req: NextRequest) {
       },
       {
         role: "user",
-        content: `URL: ${url.toString()}\nTitle: ${title}\nContent:\n${sample}`,
+        content: `URL: ${url.toString()}
+Title: ${title}
+Meta description: ${hints.description || "n/a"}
+Site name: ${hints.siteName || "n/a"}
+JSON-LD hints: ${hints.jsonLd ? JSON.stringify(hints.jsonLd) : "n/a"}
+Content:\n${sample}`,
       },
     ],
   };
