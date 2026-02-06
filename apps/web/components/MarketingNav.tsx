@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
@@ -27,9 +28,13 @@ export default function MarketingNav() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#2f6b4f] text-white text-xs font-bold">
-            RR
-          </span>
+          <Image
+            src="/favicon.png"
+            alt="Ring Receptionist"
+            width={36}
+            height={36}
+            className="rounded-xl"
+          />
           <div className="leading-tight">
             <div className="text-base font-semibold text-zinc-900">
               Ring Receptionist

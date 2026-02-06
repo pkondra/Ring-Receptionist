@@ -1,122 +1,234 @@
-# Ring Receptionist - AI Receptionist
+# theringreceiptionsit.com
 
-AI-powered phone receptionist SaaS for tree removal businesses. **WIP**
+AI receptionist SaaS for service businesses (plumbers, HVAC, electrical, movers, tree services).
 
-## Prerequisites
+## Current Status
+
+### What works
+
+- Marketing + service pages:
+  - `/`
+  - `/services/plumbers`
+  - `/services/hvac`
+  - `/services/electricians`
+  - `/services/movers`
+  - `/services/tree`
+- Multi-step onboarding at `/get-started`:
+  - Step 1: business website URL capture (demo mode)
+  - Step 2: ElevenLabs voice selection with sample previews
+  - Step 3: call coverage preferences (business hours / 24x7 / custom schedule)
+  - Step 4: contact + auth + agent creation
+  - Step 5 (redirect): pricing and trial activation
+- Agent creation saves:
+  - business + tone + custom context
+  - selected voice ID
+  - onboarding website URL
+  - call handling preferences
+- Pricing flow:
+  - Starter / Pro / Growth plans
+  - monthly / yearly toggle
+  - testimonials section under pricing cards
+- Stripe trial model implemented:
+  - checkout subscription
+  - 7-day trial
+  - card required upfront
+  - $0 due today
+  - subscription starts after trial
+- Billing routes in place:
+  - `/api/stripe/checkout`
+  - `/api/stripe/portal`
+  - `/api/stripe/webhook`
+  - `/api/stripe/sync-subscription`
+- Dashboard app routes exist:
+  - `/dashboard`
+  - `/dashboard/agents`
+  - `/dashboard/agents/[agentId]/settings`
+  - `/dashboard/leads`
+  - `/dashboard/calls`
+  - `/dashboard/appointments`
+  - `/dashboard/knowledge`
+  - `/dashboard/billing`
+
+### What does not work yet / known gaps
+
+- Website scraping in onboarding is intentionally disabled right now (demo mode only).
+- Onboarding stores URL and settings but does not auto-train from scraped pages yet.
+- Voice previews in onboarding rely on ElevenLabs voice preview URLs; custom generated multi-sample previews are not yet part of onboarding.
+- Twilio telephony integration is not active in this phase.
+- Convex CLI may show `Found multiple CONVEX_URL environment variables` if your shell exports conflicting values.
+
+## Stack
+
+- Next.js 16 (App Router)
+- React 19
+- Convex
+- Clerk
+- ElevenLabs
+- Stripe
+- Tailwind CSS 4
+- Framer Motion
+
+## Local Development
+
+### 1) Prerequisites
 
 - Node.js 20+
-- pnpm 10+
-- [Clerk](https://clerk.com) account
-- [Convex](https://convex.dev) account
-- [ElevenLabs](https://elevenlabs.io) account (for voice agent)
-- [OpenAI](https://platform.openai.com) API key (for lead extraction + onboarding scrape)
-- [Stripe](https://stripe.com) account (for subscriptions)
+- npm / pnpm / bun
+- Convex account
+- Clerk account
+- ElevenLabs API key
+- Stripe account + prices
+- OpenAI API key (for extraction/summaries routes)
 
-## Setup
+### 2) Environment setup (single source of truth)
 
-### 1. Install dependencies
+Use one file at repo root:
+
+- Keep: `/.env.local`
+- Remove manual editing of: `/apps/web/.env.local`
+
+`/apps/web/.env.local` is now synced from root via script.
+
+Copy template:
+
+```bash
+cp .env.example .env.local
+```
+
+Required keys include:
+
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+- `CLERK_SECRET_KEY`
+- `CONVEX_DEPLOYMENT`
+- `CONVEX_URL`
+- `NEXT_PUBLIC_CONVEX_URL`
+- `ELEVENLABS_API_KEY`
+- `OPENAI_API_KEY`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_PRICE_STARTER_MONTHLY`
+- `STRIPE_PRICE_STARTER_YEARLY`
+- `STRIPE_PRICE_PRO_MONTHLY`
+- `STRIPE_PRICE_PRO_YEARLY`
+- `STRIPE_PRICE_GROWTH_MONTHLY`
+- `STRIPE_PRICE_GROWTH_YEARLY`
+- `BILLING_WEBHOOK_SECRET`
+
+Important:
+
+- `STRIPE_SECRET_KEY` must be an `sk_...` secret key.
+- `STRIPE_WEBHOOK_SECRET` must be a `whsec_...` webhook signing secret.
+
+Set `CLERK_JWT_ISSUER_DOMAIN` in Convex dashboard env (not local file).
+
+### 3) Install dependencies
+
+Any package manager is supported.
 
 ```bash
 pnpm install
+# or
+npm install
+# or
+bun install
 ```
 
-### 2. Configure Clerk
-
-1. Create a Clerk application at [clerk.com](https://clerk.com)
-2. Go to Configure > JWT Templates > create one named **"convex"** (do NOT rename)
-3. Copy the Issuer URL from the JWT template
-
-### 3. Configure Convex
+### 4) Generate Convex types
 
 ```bash
-npx convex dev
+npx convex codegen
 ```
 
-This prompts you to log in and create a project. Then set `CLERK_JWT_ISSUER_DOMAIN` in the Convex dashboard environment variables (use the Issuer URL from step 2).
-
-### 4. Set up web app environment
+### 5) Run dev
 
 ```bash
-cp apps/web/.env.example apps/web/.env.local
+pnpm dev
+# or
+npm run dev
+# or
+bun run dev
 ```
 
-Fill in:
-- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` - from Clerk dashboard
-- `CLERK_SECRET_KEY` - from Clerk dashboard
-- `NEXT_PUBLIC_CONVEX_URL` - from Convex dashboard (shown after `npx convex dev`)
-- `ELEVENLABS_API_KEY` - from [ElevenLabs](https://elevenlabs.io) dashboard > Profile + API key
-- `OPENAI_API_KEY` - from [OpenAI](https://platform.openai.com) dashboard
-- `STRIPE_SECRET_KEY` - from Stripe dashboard
-- `STRIPE_WEBHOOK_SECRET` - from Stripe webhook settings
-- `STRIPE_PRICE_STARTER_MONTHLY`, `STRIPE_PRICE_STARTER_YEARLY`, `STRIPE_PRICE_PRO_MONTHLY`,
-  `STRIPE_PRICE_PRO_YEARLY`, `STRIPE_PRICE_GROWTH_MONTHLY`, `STRIPE_PRICE_GROWTH_YEARLY`
-- `BILLING_WEBHOOK_SECRET` - any random secret shared with Convex webhook mutation
+This runs:
 
-### 5. Run development
+- web app: `http://localhost:3002`
+- Convex dev server
+
+## Commands
+
+All commands work with `pnpm`, `npm`, or `bun run`.
+
+- `dev` - run web + Convex
+- `dev:web` - run only Next.js app
+- `dev:convex` - run only Convex
+- `build` - production build (web)
+- `start` - start production server
+- `lint` - lint web app
+- `typecheck` - type check web app
+- `sync:env` - sync root `.env.local` to `apps/web/.env.local`
+
+## Deployment (Vercel + Convex + Stripe)
+
+### Vercel
+
+- Root directory: repository root
+- Build command: `pnpm --filter @vozexo/web build` or `npm run build`
+- Install command: `pnpm install --frozen-lockfile` (default)
+- Do not set Output Directory manually for this monorepo unless required.
+
+### Convex
 
 ```bash
-pnpm dev          # Runs web + Convex dev server in parallel
+npx convex deploy
 ```
 
-## ElevenLabs Voice Agent Setup
+Set Convex env vars:
 
-1. Get an API key from [elevenlabs.io](https://elevenlabs.io) > Profile + API key
-2. Add it to `apps/web/.env.local` as `ELEVENLABS_API_KEY`
-3. Start the app and go to Dashboard > Agent Settings
-4. Click **"Save & Connect to ElevenLabs"** to create the agent
-5. Once connected, click **"Open Voice Lab"** or navigate to `/chat/<agentId>`
-6. Click **"Start Voice Chat"** to begin a conversation (requires microphone access)
+- `CLERK_JWT_ISSUER_DOMAIN`
+- any backend secrets used by Convex functions
 
-The voice lab lets you:
-- Talk to your AI receptionist in real-time via your browser microphone
-- See a live transcript of the conversation
-- View automatically extracted lead fields (name, phone, address, urgency, etc.)
-- Review memory facts captured during the conversation
+### Stripe
 
-## Project Structure
+- Webhook endpoint:
+  - local: `http://localhost:3002/api/stripe/webhook`
+  - prod: `https://<your-domain>/api/stripe/webhook`
+- Listen locally (Stripe CLI):
 
-```
-apps/web/       Next.js dashboard (Clerk + Convex + ElevenLabs + Stripe)
-convex/         Convex backend (schema, mutations, queries)
-packages/       Shared packages (future)
+```bash
+stripe listen --forward-to localhost:3002/api/stripe/webhook
 ```
 
-## Key Routes
+Subscribe to at least:
 
-| Route | Description |
-|-------|-------------|
-| `/` | Marketing landing page |
-| `/get-started` | Onboarding (website → agent → profile) |
-| `/pricing` | Pricing + trial checkout |
-| `/dashboard` | Main dashboard with agent status |
-| `/dashboard/agents` | Agent list / grid |
-| `/dashboard/agents/new` | Create new agent |
-| `/dashboard/agents/[agentId]/settings` | Agent configuration + ElevenLabs sync |
-| `/dashboard/leads` | Lead list |
-| `/dashboard/calls` | Call history |
-| `/chat/[agentId]` | Voice chat lab for testing the agent |
+- `checkout.session.completed`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
 
-## Scripts
+## Security Notes
 
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Run web + Convex dev server |
-| `pnpm dev:web` | Run only Next.js |
-| `pnpm dev:convex` | Run only Convex dev |
-| `pnpm build` | Build web app |
-| `pnpm start` | Start web app (production) |
-| `pnpm lint` | Lint all packages |
-| `pnpm typecheck` | Type-check all packages |
+- Never commit `.env.local`.
+- Rotate any key accidentally exposed in screenshots/logs.
+- Use least-privilege keys for external services where possible.
 
-## Deployment Notes
+## Troubleshooting
 
-1. Set production env vars in your hosting platform (Clerk, Convex, Stripe, OpenAI, ElevenLabs).
-2. In Stripe → Developers → Webhooks, add an endpoint for:
-   - `https://<your-domain>/api/stripe/webhook`
-3. In Convex → Settings → Environment Variables, set:
-   - `CLERK_JWT_ISSUER_DOMAIN`
-4. Deploy Convex:
-   ```bash
-   npx convex deploy
-   ```
-5. Deploy the Next.js app (Vercel, Render, etc.). Ensure `NEXT_PUBLIC_CONVEX_URL` points to the deployed Convex URL.
+### `No address provided to ConvexReactClient`
+
+- Ensure `NEXT_PUBLIC_CONVEX_URL` exists in root `.env.local`
+- Run `npm run sync:env`
+- Restart `dev`
+
+### `EADDRINUSE: 3002`
+
+Kill existing process and restart:
+
+```bash
+lsof -ti:3002 | xargs kill -9
+```
+
+### Stripe checkout errors
+
+- Verify `STRIPE_SECRET_KEY` is secret key (`sk_...`)
+- Verify all Stripe price IDs exist in your Stripe account
+- Verify webhook secret is `whsec_...`
+

@@ -304,9 +304,62 @@ export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [websiteInput, setWebsiteInput] = useState("");
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://theringreceiptionsit.com";
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${siteUrl}/#organization`,
+        name: "Ring Receptionist",
+        url: siteUrl,
+        logo: `${siteUrl}/favicon.png`,
+        description: "AI receptionist that automatically answers calls, qualifies customers, and sends real job opportunities for service businesses.",
+        sameAs: [],
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": `${siteUrl}/#software`,
+        name: "Ring Receptionist",
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "Web",
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "USD",
+          priceValidUntil: "2026-12-31",
+        },
+        description: "Automatically answers calls, qualifies customers, and sends you real job opportunities so you can focus on the work.",
+        featureList: [
+          "Automated call answering",
+          "Customer qualification",
+          "Lead generation",
+          "24/7 availability",
+          "Real-time job opportunities",
+        ],
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${siteUrl}/#website`,
+        url: siteUrl,
+        name: "Ring Receptionist",
+        description: "Never Miss a Call. Turn Every Ring Into a Lead.",
+        publisher: {
+          "@id": `${siteUrl}/#organization`,
+        },
+      },
+    ],
+  };
+
   return (
-    <div className="min-h-screen bg-[var(--background)] text-zinc-900 overflow-x-hidden">
-      <MarketingNav />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <div className="min-h-screen bg-[var(--background)] text-zinc-900 overflow-x-hidden">
+        <MarketingNav />
 
       <main>
         {/* Hero Section */}
@@ -337,10 +390,10 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="mt-10 text-5xl md:text-6xl lg:text-7xl font-semibold text-zinc-900 font-display leading-[1.1] tracking-tight"
             >
-              Ring Receptionist
+              theringreceiptionsit.com
               <br />
               <span className="text-emerald-600">
-                Automatically Answers Calls
+                Never Miss a Call. Turn Every Ring Into a Lead.
               </span>
             </motion.h1>
 
@@ -351,8 +404,7 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="mt-8 text-lg md:text-xl text-zinc-600 max-w-2xl mx-auto leading-relaxed"
             >
-              Automatically answers calls and turns them into leads—so you can
-              focus on the job, not the phone.
+              Automatically answers calls, qualifies customers, and sends you real job opportunities so you can focus on the work.
             </motion.p>
 
             <motion.div
@@ -803,7 +855,7 @@ export default function Home() {
                 </div>
                 <div className="p-5 text-center bg-emerald-600 text-white">
                   <div className="text-xs text-emerald-100 uppercase tracking-wider">AI-Powered</div>
-                  <div className="font-semibold mt-1">Ring Receptionist</div>
+                  <div className="font-semibold mt-1">theringreceiptionsit.com</div>
                 </div>
               </div>
               {/* Table Body */}
@@ -1098,7 +1150,7 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                   </svg>
                 </div>
-                <span className="text-lg font-semibold">Ring Receptionist</span>
+                <span className="text-lg font-semibold">theringreceiptionsit.com</span>
               </div>
               <p className="text-sm text-zinc-400 max-w-sm leading-relaxed">
                 AI-powered phone answering designed for service businesses. Capture every lead, handle emergencies, grow your operation.
@@ -1154,7 +1206,7 @@ export default function Home() {
           <div className="mt-14 pt-8 border-t border-zinc-800/80">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="text-sm text-zinc-500">
-                © 2026 Ring Receptionist. All rights reserved.
+                © 2026 theringreceiptionsit.com. All rights reserved.
               </div>
               <div className="flex flex-wrap justify-center gap-6 text-sm text-zinc-500">
                 <span className="flex items-center gap-2">
@@ -1180,6 +1232,7 @@ export default function Home() {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
+    </>
   );
 }

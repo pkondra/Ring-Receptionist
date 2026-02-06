@@ -773,7 +773,7 @@ export default function ServicePageContent({ page }: { page: ServicePage }) {
                   <div className="text-xs uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.7)" }}>
                     AI-Powered
                   </div>
-                  <div className="font-semibold mt-1">Ring Receptionist</div>
+                  <div className="font-semibold mt-1">theringreceiptionsit.com</div>
                 </div>
               </div>
               {compareRows.map((row, idx) => (

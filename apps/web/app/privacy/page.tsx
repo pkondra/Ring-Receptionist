@@ -41,7 +41,7 @@ export default function PrivacyPolicyPage() {
                   Introduction
                 </h2>
                 <p className="text-zinc-600 leading-relaxed">
-                  Ring Receptionist ("we," "our," or "us") is committed to protecting your privacy.
+                  theringreceiptionsit.com ("we," "our," or "us") is committed to protecting your privacy.
                   This Privacy Policy explains how we collect, use, disclose, and safeguard your information
                   when you use our AI-powered phone answering service and website.
                 </p>
@@ -140,7 +140,7 @@ export default function PrivacyPolicyPage() {
                   If you have any questions about this Privacy Policy, please contact us at:
                 </p>
                 <div className="mt-4 p-4 bg-zinc-50 rounded-xl text-zinc-600">
-                  <p>Email: privacy@ringreceptionist.com</p>
+                  <p>Email: privacy@theringreceiptionsit.com</p>
                   <p>Phone: (555) 123-4567</p>
                   <p>Address: Austin, Texas, USA</p>
                 </div>
@@ -180,7 +180,7 @@ export default function PrivacyPolicyPage() {
         <div className="mx-auto max-w-6xl px-6 py-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-sm text-zinc-500">
-              © 2026 Ring Receptionist. All rights reserved.
+              © 2026 theringreceiptionsit.com. All rights reserved.
             </div>
             <div className="flex items-center gap-6 text-sm text-zinc-500">
               <Link href="/privacy" className="text-white">Privacy</Link>

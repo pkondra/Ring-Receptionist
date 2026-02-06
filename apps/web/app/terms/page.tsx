@@ -41,7 +41,7 @@ export default function TermsPage() {
                   Agreement to Terms
                 </h2>
                 <p className="text-zinc-600 leading-relaxed">
-                  By accessing or using Ring Receptionist's services, you agree to be bound by these
+                  By accessing or using theringreceiptionsit.com's services, you agree to be bound by these
                   Terms of Service and all applicable laws and regulations. If you do not agree with any of
                   these terms, you are prohibited from using or accessing our services.
                 </p>
@@ -52,7 +52,7 @@ export default function TermsPage() {
                   Description of Service
                 </h2>
                 <p className="text-zinc-600 leading-relaxed">
-                  Ring Receptionist provides an AI-powered phone answering service designed for local
+                  theringreceiptionsit.com provides an AI-powered phone answering service designed for local
                   service businesses. Our service answers incoming calls on your behalf, collects caller
                   information, schedules appointments, and handles emergency dispatch notifications
                   according to your configured preferences.
@@ -127,7 +127,7 @@ export default function TermsPage() {
                 </h2>
                 <p className="text-zinc-600 leading-relaxed">
                   All content, features, and functionality of our service, including but not limited to
-                  text, graphics, logos, and software, are the exclusive property of Ring Receptionist
+                  text, graphics, logos, and software, are the exclusive property of theringreceiptionsit.com
                   Receptionist and are protected by copyright, trademark, and other intellectual
                   property laws. You may not copy, modify, or distribute any part of our service without
                   our prior written consent.
@@ -139,7 +139,7 @@ export default function TermsPage() {
                   Limitation of Liability
                 </h2>
                 <p className="text-zinc-600 leading-relaxed">
-                  To the fullest extent permitted by law, Ring Receptionist shall not be liable
+                  To the fullest extent permitted by law, theringreceiptionsit.com shall not be liable
                   for any indirect, incidental, special, consequential, or punitive damages, including
                   but not limited to loss of profits, data, or business opportunities, arising from
                   your use of our service. Our total liability shall not exceed the amount paid by you
@@ -152,7 +152,7 @@ export default function TermsPage() {
                   Indemnification
                 </h2>
                 <p className="text-zinc-600 leading-relaxed">
-                  You agree to indemnify and hold harmless Ring Receptionist and its officers,
+                  You agree to indemnify and hold harmless theringreceiptionsit.com and its officers,
                   directors, employees, and agents from any claims, damages, losses, or expenses arising
                   from your use of the service, your violation of these terms, or your violation of any
                   rights of a third party.
@@ -202,7 +202,7 @@ export default function TermsPage() {
                   If you have any questions about these Terms of Service, please contact us:
                 </p>
                 <div className="mt-4 p-4 bg-zinc-50 rounded-xl text-zinc-600">
-                  <p>Email: legal@ringreceptionist.com</p>
+                  <p>Email: legal@theringreceiptionsit.com</p>
                   <p>Phone: (555) 123-4567</p>
                   <p>Address: Austin, Texas, USA</p>
                 </div>
@@ -231,7 +231,7 @@ export default function TermsPage() {
         <div className="mx-auto max-w-6xl px-6 py-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-sm text-zinc-500">
-              © 2026 Ring Receptionist. All rights reserved.
+              © 2026 theringreceiptionsit.com. All rights reserved.
             </div>
             <div className="flex items-center gap-6 text-sm text-zinc-500">
               <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>

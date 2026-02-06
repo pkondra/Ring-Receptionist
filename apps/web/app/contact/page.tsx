@@ -78,7 +78,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-zinc-900">Email Us</h3>
-                    <p className="text-zinc-600">support@ringreceptionist.com</p>
+                    <p className="text-zinc-600">support@theringreceiptionsit.com</p>
                     <p className="text-sm text-zinc-500 mt-1">We respond within 24 hours</p>
                   </div>
                 </motion.div>
@@ -303,7 +303,7 @@ export default function ContactPage() {
         <div className="mx-auto max-w-6xl px-6 py-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-sm text-zinc-500">
-              © 2026 Ring Receptionist. All rights reserved.
+              © 2026 theringreceiptionsit.com. All rights reserved.
             </div>
             <div className="flex items-center gap-6 text-sm text-zinc-500">
               <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>

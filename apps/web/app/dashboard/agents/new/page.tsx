@@ -136,7 +136,7 @@ export default function NewAgentPage() {
               type="text"
               value={agentName}
               onChange={(e) => setAgentName(e.target.value)}
-              placeholder="e.g., Ring Receptionist"
+              placeholder="e.g., theringreceiptionsit.com"
               required
               className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
             />

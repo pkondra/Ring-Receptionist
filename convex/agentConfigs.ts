@@ -50,6 +50,19 @@ export const createAgent = mutation({
     }),
     customContext: v.optional(v.string()),
     voiceId: v.optional(v.string()),
+    onboardingWebsiteUrl: v.optional(v.string()),
+    callHandling: v.optional(
+      v.object({
+        mode: v.union(
+          v.literal("businessHours"),
+          v.literal("always"),
+          v.literal("custom")
+        ),
+        businessHoursStart: v.optional(v.string()),
+        businessHoursEnd: v.optional(v.string()),
+        customSchedule: v.optional(v.string()),
+      })
+    ),
     qualificationGoals: v.array(
       v.object({
         key: v.string(),
@@ -87,6 +100,8 @@ export const createAgent = mutation({
       tone: args.tone,
       customContext: args.customContext ?? "",
       voiceId: args.voiceId ?? DEFAULT_VOICE_ID,
+      onboardingWebsiteUrl: args.onboardingWebsiteUrl,
+      callHandling: args.callHandling,
       qualificationGoals: args.qualificationGoals,
       emergencyProtocol: args.emergencyProtocol,
       isDefault: !existingAgent,
@@ -161,6 +176,19 @@ export const updateAgentConfig = mutation({
     ),
     customContext: v.optional(v.string()),
     voiceId: v.optional(v.string()),
+    onboardingWebsiteUrl: v.optional(v.string()),
+    callHandling: v.optional(
+      v.object({
+        mode: v.union(
+          v.literal("businessHours"),
+          v.literal("always"),
+          v.literal("custom")
+        ),
+        businessHoursStart: v.optional(v.string()),
+        businessHoursEnd: v.optional(v.string()),
+        customSchedule: v.optional(v.string()),
+      })
+    ),
     qualificationGoals: v.optional(
       v.array(
         v.object({
@@ -201,6 +229,9 @@ export const updateAgentConfig = mutation({
     if (fields.customContext !== undefined)
       patch.customContext = fields.customContext;
     if (fields.voiceId !== undefined) patch.voiceId = fields.voiceId;
+    if (fields.onboardingWebsiteUrl !== undefined)
+      patch.onboardingWebsiteUrl = fields.onboardingWebsiteUrl;
+    if (fields.callHandling !== undefined) patch.callHandling = fields.callHandling;
     if (fields.qualificationGoals !== undefined)
       patch.qualificationGoals = fields.qualificationGoals;
     if (fields.emergencyProtocol !== undefined)

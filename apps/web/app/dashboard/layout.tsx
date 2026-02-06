@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { api } from "@convex/_generated/api";
 import DashboardNav from "@/components/DashboardNav";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function DashboardLayout({
   children,
@@ -68,13 +69,22 @@ export default function DashboardLayout({
     <div className="flex h-screen flex-col md:flex-row">
       <aside className="w-full md:w-64 p-4 md:p-6 flex flex-col gap-4 bg-[var(--surface)] md:border-r border-[var(--border)]">
         <div className="surface-card px-4 py-4 mb-5">
-          <Link href="/dashboard" className="block">
-            <h2 className="text-xl font-semibold text-zinc-900 font-display">
-              Ring Receptionist
-            </h2>
-            <p className="text-xs text-zinc-500 mt-1">
-              AI receptionist studio
-            </p>
+          <Link href="/dashboard" className="flex items-center gap-3">
+            <Image
+              src="/favicon.png"
+              alt="Ring Receptionist"
+              width={32}
+              height={32}
+              className="rounded-lg"
+            />
+            <div>
+              <h2 className="text-xl font-semibold text-zinc-900 font-display">
+                Ring Receptionist
+              </h2>
+              <p className="text-xs text-zinc-500 mt-1">
+                AI receptionist studio
+              </p>
+            </div>
           </Link>
         </div>
         <div className="surface-card p-3 flex-1">

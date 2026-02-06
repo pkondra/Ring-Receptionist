@@ -34,6 +34,17 @@ const memoryFactValidator = v.object({
   value: v.string(),
 });
 
+const callHandlingValidator = v.object({
+  mode: v.union(
+    v.literal("businessHours"),
+    v.literal("always"),
+    v.literal("custom")
+  ),
+  businessHoursStart: v.optional(v.string()),
+  businessHoursEnd: v.optional(v.string()),
+  customSchedule: v.optional(v.string()),
+});
+
 export default defineSchema({
   users: defineTable({
     tokenIdentifier: v.string(),
@@ -76,6 +87,8 @@ export default defineSchema({
       triggers: v.array(emergencyTriggerValidator),
       instructions: v.string(),
     }),
+    onboardingWebsiteUrl: v.optional(v.string()),
+    callHandling: v.optional(callHandlingValidator),
     isDefault: v.boolean(),
     elevenlabsAgentId: v.optional(v.string()),
   }).index("by_workspace", ["workspaceId"]),

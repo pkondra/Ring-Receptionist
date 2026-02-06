@@ -79,6 +79,27 @@ const plans: Plan[] = [
   },
 ];
 
+const pricingTestimonials = [
+  {
+    quote:
+      "I stopped losing after-hours calls in week one. The lead summaries are clean and easy to action.",
+    name: "Mason T.",
+    role: "Plumbing Business Owner",
+  },
+  {
+    quote:
+      "Setup was simple and my team finally stopped juggling missed-call callbacks all day.",
+    name: "Andrea P.",
+    role: "HVAC Operations Manager",
+  },
+  {
+    quote:
+      "Customers get instant answers, and we only jump in when a real job is ready to book.",
+    name: "Riyad K.",
+    role: "Electrical Services Founder",
+  },
+];
+
 export default function PricingPage() {
   const [interval, setInterval] = useState<"month" | "year">("month");
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
@@ -280,6 +301,27 @@ export default function PricingPage() {
           </div>
           <div className="mt-2 text-xs text-zinc-500">
             Card required to start trial. $0 due today. Subscription begins after 7 days.
+          </div>
+
+          <div className="mt-10">
+            <div className="flex items-end justify-between gap-4">
+              <h2 className="text-2xl md:text-3xl font-semibold font-display">
+                Trusted by local service teams
+              </h2>
+              <p className="text-sm text-zinc-500">What customers say after switching</p>
+            </div>
+
+            <div className="mt-5 grid gap-4 md:grid-cols-3">
+              {pricingTestimonials.map((item) => (
+                <div key={item.name} className="surface-card p-5">
+                  <p className="text-sm text-zinc-700 leading-relaxed">&quot;{item.quote}&quot;</p>
+                  <div className="mt-5 border-t border-[var(--border)] pt-3">
+                    <p className="text-sm font-semibold text-zinc-900">{item.name}</p>
+                    <p className="text-xs text-zinc-500">{item.role}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="mt-6">

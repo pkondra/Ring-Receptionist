@@ -25,7 +25,7 @@ export const servicePages: ServicePage[] = [
     heroTitle: "Never miss another",
     heroHighlight: "plumbing call",
     heroSubtitle:
-      "Ring Receptionist answers every call, qualifies the job, and books estimates so your crew can stay on the tools.",
+      "theringreceiptionsit.com answers every call, qualifies the job, and books estimates so your crew can stay on the tools.",
     exampleCalls: ["Burst pipes", "Water heater failures", "Drain clogs"],
     faq: [
       {
@@ -57,7 +57,7 @@ export const servicePages: ServicePage[] = [
     heroTitle: "Never miss another",
     heroHighlight: "HVAC call",
     heroSubtitle:
-      "Ring Receptionist answers after-hours and weekend calls, qualifies the issue, and keeps your schedule full.",
+      "theringreceiptionsit.com answers after-hours and weekend calls, qualifies the issue, and keeps your schedule full.",
     exampleCalls: ["No heat", "AC not cooling", "Furnace repair"],
     faq: [
       {
@@ -89,7 +89,7 @@ export const servicePages: ServicePage[] = [
     heroTitle: "Never miss another",
     heroHighlight: "electrical call",
     heroSubtitle:
-      "Ring Receptionist qualifies electrical jobs, flags hazards, and gets your team the details fast.",
+      "theringreceiptionsit.com qualifies electrical jobs, flags hazards, and gets your team the details fast.",
     exampleCalls: ["Power outages", "Panel issues", "Outlet repairs"],
     faq: [
       {
@@ -121,7 +121,7 @@ export const servicePages: ServicePage[] = [
     heroTitle: "Never miss another",
     heroHighlight: "moving lead",
     heroSubtitle:
-      "Ring Receptionist captures move details, dates, and locations so your team can quote quickly.",
+      "theringreceiptionsit.com captures move details, dates, and locations so your team can quote quickly.",
     exampleCalls: ["Local moves", "Long-distance moves", "Packing help"],
     faq: [
       {
@@ -153,7 +153,7 @@ export const servicePages: ServicePage[] = [
     heroTitle: "Never miss another",
     heroHighlight: "dental patient",
     heroSubtitle:
-      "Ring Receptionist handles new patient calls, emergencies, and appointment requests while your team stays chairside.",
+      "theringreceiptionsit.com handles new patient calls, emergencies, and appointment requests while your team stays chairside.",
     exampleCalls: ["Tooth pain", "New patient inquiries", "Cleaning requests"],
     faq: [
       {
@@ -185,7 +185,7 @@ export const servicePages: ServicePage[] = [
     heroTitle: "Never miss another",
     heroHighlight: "tree service call",
     heroSubtitle:
-      "Ring Receptionist answers every call, qualifies hazards, and schedules estimates for your tree crew.",
+      "theringreceiptionsit.com answers every call, qualifies hazards, and schedules estimates for your tree crew.",
     exampleCalls: ["Storm damage", "Tree removal", "Stump grinding"],
     faq: [
       {

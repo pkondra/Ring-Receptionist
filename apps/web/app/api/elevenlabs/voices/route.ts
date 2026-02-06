@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+
+type RawVoice = {
+  voice_id?: string;
+  name?: string;
+  category?: string;
+  preview_url?: string;
+  labels?: Record<string, string>;
+};
 
 export async function GET() {
-  const { userId } = await auth();
-  if (!userId) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
-
   const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
@@ -19,7 +21,7 @@ export async function GET() {
     headers: {
       "xi-api-key": apiKey,
     },
-    cache: "no-store",
+    next: { revalidate: 300 },
   });
 
   if (!response.ok) {
@@ -32,8 +34,18 @@ export async function GET() {
   }
 
   const data = (await response.json()) as {
-    voices?: Array<Record<string, unknown>>;
+    voices?: RawVoice[];
   };
 
-  return NextResponse.json({ voices: data.voices ?? [] });
+  const voices = (data.voices ?? [])
+    .filter((voice) => Boolean(voice.voice_id))
+    .map((voice) => ({
+      voice_id: voice.voice_id,
+      name: voice.name,
+      category: voice.category,
+      preview_url: voice.preview_url,
+      labels: voice.labels,
+    }));
+
+  return NextResponse.json({ voices });
 }
