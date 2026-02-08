@@ -137,11 +137,25 @@ export default function MarketingNav() {
           </button>
 
           <SignedOut>
+            <div className="hidden sm:flex items-center gap-2">
+              <Link
+                href="/sign-in?redirect_url=/dashboard"
+                className="rounded-full px-4 py-2.5 text-sm font-medium border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 transition-colors"
+              >
+                Login
+              </Link>
+              <Link
+                href="/get-started"
+                className="rounded-full px-5 py-2.5 text-sm font-medium bg-zinc-900 text-white hover:bg-black transition-colors"
+              >
+                Get Started
+              </Link>
+            </div>
             <Link
-              href="/get-started"
-              className="rounded-full px-5 py-2.5 text-sm font-medium bg-zinc-900 text-white hover:bg-black transition-colors"
+              href="/sign-in?redirect_url=/dashboard"
+              className="sm:hidden rounded-full px-4 py-2.5 text-sm font-medium border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 transition-colors"
             >
-              Get Started
+              Login
             </Link>
           </SignedOut>
           <SignedIn>
@@ -221,6 +235,33 @@ export default function MarketingNav() {
             <Link href="/contact" className="hover:text-zinc-900 transition-colors" onClick={() => setMobileMenuOpen(false)}>
               Contact
             </Link>
+            <SignedOut>
+              <div className="pt-2 flex flex-col gap-2">
+                <Link
+                  href="/sign-in?redirect_url=/dashboard"
+                  className="rounded-full px-4 py-2.5 text-sm font-medium border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 transition-colors text-center"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/get-started"
+                  className="rounded-full px-4 py-2.5 text-sm font-medium bg-zinc-900 text-white hover:bg-black transition-colors text-center"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Get Started
+                </Link>
+              </div>
+            </SignedOut>
+            <SignedIn>
+              <Link
+                href="/dashboard"
+                className="rounded-full px-4 py-2.5 text-sm font-medium bg-zinc-900 text-white hover:bg-black transition-colors text-center"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+            </SignedIn>
           </nav>
         </div>
       )}
