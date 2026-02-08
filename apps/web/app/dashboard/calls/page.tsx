@@ -66,6 +66,31 @@ export default function CallsPage() {
 
   const activeCount = rows.filter(r => r.status !== "ended").length;
   const completedCount = rows.filter(r => r.status === "ended").length;
+  const webhookStatus = workspace?.lastElevenlabsWebhookStatus;
+  const webhookStatusStyles =
+    webhookStatus === "success"
+      ? {
+          badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
+          dot: "bg-emerald-500",
+          label: "Healthy",
+        }
+      : webhookStatus === "error"
+        ? {
+            badge: "bg-rose-50 text-rose-700 border-rose-200",
+            dot: "bg-rose-500",
+            label: "Error",
+          }
+        : webhookStatus === "received"
+          ? {
+              badge: "bg-amber-50 text-amber-700 border-amber-200",
+              dot: "bg-amber-500",
+              label: "Received",
+            }
+          : {
+              badge: "bg-zinc-100 text-zinc-700 border-zinc-200",
+              dot: "bg-zinc-400",
+              label: "Not configured",
+            };
 
   if (isLoading || sessions === undefined) {
     return (
@@ -104,6 +129,62 @@ export default function CallsPage() {
             </svg>
             {completedCount} Completed
           </span>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-zinc-200 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-zinc-900">Webhook Health</p>
+            <p className="text-sm text-zinc-500 mt-1">
+              Status of ElevenLabs post-call delivery into calls, leads, and appointments.
+            </p>
+          </div>
+          <span
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold ${webhookStatusStyles.badge}`}
+          >
+            <span className={`h-2 w-2 rounded-full ${webhookStatusStyles.dot}`} />
+            {webhookStatusStyles.label}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+            <p className="text-xs uppercase tracking-wide text-zinc-500 font-semibold">
+              Last Webhook
+            </p>
+            <p className="text-sm text-zinc-900 mt-1">
+              {workspace?.lastElevenlabsWebhookAt
+                ? formatRelativeTime(workspace.lastElevenlabsWebhookAt)
+                : "No webhook received yet"}
+            </p>
+          </div>
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+            <p className="text-xs uppercase tracking-wide text-zinc-500 font-semibold">
+              Event
+            </p>
+            <p className="text-sm text-zinc-900 mt-1">
+              {workspace?.lastElevenlabsWebhookEventType ?? "—"}
+            </p>
+          </div>
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+            <p className="text-xs uppercase tracking-wide text-zinc-500 font-semibold">
+              Conversation ID
+            </p>
+            <p className="text-sm text-zinc-900 mt-1 break-all">
+              {workspace?.lastElevenlabsWebhookConversationId ?? "—"}
+            </p>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 mt-4">
+          <p className="text-xs uppercase tracking-wide text-zinc-500 font-semibold">
+            Last Message
+          </p>
+          <p className="text-sm text-zinc-900 mt-1">
+            {workspace?.lastElevenlabsWebhookMessage ??
+              "Set ElevenLabs Post-Call Webhook to /api/elevenlabs/webhook and place the same ELEVENLABS_WEBHOOK_SECRET in Vercel + Convex."}
+          </p>
         </div>
       </div>
 

@@ -136,21 +136,20 @@ export default function MarketingNav() {
             </svg>
           </button>
 
+          <Link
+            href="/sign-in?redirect_url=/dashboard"
+            className="hidden sm:inline-flex rounded-full px-4 py-2.5 text-sm font-medium border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 transition-colors"
+          >
+            Login
+          </Link>
+
           <SignedOut>
-            <div className="hidden sm:flex items-center gap-2">
-              <Link
-                href="/sign-in?redirect_url=/dashboard"
-                className="rounded-full px-4 py-2.5 text-sm font-medium border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 transition-colors"
-              >
-                Login
-              </Link>
-              <Link
-                href="/get-started"
-                className="rounded-full px-5 py-2.5 text-sm font-medium bg-zinc-900 text-white hover:bg-black transition-colors"
-              >
-                Get Started
-              </Link>
-            </div>
+            <Link
+              href="/get-started"
+              className="hidden sm:inline-flex rounded-full px-5 py-2.5 text-sm font-medium bg-zinc-900 text-white hover:bg-black transition-colors"
+            >
+              Get Started
+            </Link>
             <Link
               href="/sign-in?redirect_url=/dashboard"
               className="sm:hidden rounded-full px-4 py-2.5 text-sm font-medium border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 transition-colors"

@@ -468,97 +468,151 @@ export async function POST(req: NextRequest) {
   const transcript = toTranscript(messages);
 
   const client = new ConvexHttpClient(convexUrl);
-  const sessionId = await client.mutation(api.chatSessions.upsertSessionFromWebhook, {
-    secret: webhookSecret,
-    elevenlabsAgentId: agentId,
-    externalCallId: conversationId,
-    elevenlabsPhoneNumberId,
-    callerPhone,
-    calledPhoneNumber,
-    startedAt,
-    endedAt,
-  });
+  let workspaceIdForHealth: Id<"workspaces"> | null = null;
+  let sessionId: Id<"chatSessions"> | null = null;
+  try {
+    const sessionResult = await client.mutation(
+      api.chatSessions.upsertSessionFromWebhook,
+      {
+        secret: webhookSecret,
+        elevenlabsAgentId: agentId,
+        externalCallId: conversationId,
+        elevenlabsPhoneNumberId,
+        callerPhone,
+        calledPhoneNumber,
+        startedAt,
+        endedAt,
+      }
+    );
+    workspaceIdForHealth = sessionResult.workspaceId;
+    sessionId = sessionResult.sessionId;
 
-  if (messages.length > 0) {
-    await client.mutation(api.chatMessages.replaceMessagesFromWebhook, {
+    await client.mutation(api.workspaces.recordElevenLabsWebhookHealth, {
       secret: webhookSecret,
-      sessionId,
-      messages,
+      workspaceId: workspaceIdForHealth,
+      status: "received",
+      eventType: eventType || "post_call_transcription",
+      message: "Webhook received from ElevenLabs",
+      conversationId,
     });
-  }
 
-  const analysis =
-    data.analysis && typeof data.analysis === "object"
-      ? (data.analysis as Record<string, unknown>)
-      : {};
-  let summary =
-    normalizeString(
-      (analysis.transcript_summary as string | undefined) ??
-        (analysis.summary as string | undefined)
-    ) ?? "";
-  let extractedFields: ExtractedFields = {};
-  let memoryFacts: Array<{ key: string; value: string }> = [];
+    if (messages.length > 0) {
+      await client.mutation(api.chatMessages.replaceMessagesFromWebhook, {
+        secret: webhookSecret,
+        sessionId,
+        messages,
+      });
+    }
 
-  if (callerPhone) {
-    extractedFields.phone = callerPhone;
-  }
+    const analysis =
+      data.analysis && typeof data.analysis === "object"
+        ? (data.analysis as Record<string, unknown>)
+        : {};
+    let summary =
+      normalizeString(
+        (analysis.transcript_summary as string | undefined) ??
+          (analysis.summary as string | undefined)
+      ) ?? "";
+    let extractedFields: ExtractedFields = {};
+    let memoryFacts: Array<{ key: string; value: string }> = [];
 
-  const openAiApiKey = process.env.OPENAI_API_KEY;
-  if (transcript && openAiApiKey) {
-    if (!summary) {
+    if (callerPhone) {
+      extractedFields.phone = callerPhone;
+    }
+
+    const openAiApiKey = process.env.OPENAI_API_KEY;
+    if (transcript && openAiApiKey) {
+      if (!summary) {
+        try {
+          summary = await summarizeCall(transcript, openAiApiKey);
+        } catch (error) {
+          console.error("Webhook summary generation error:", error);
+        }
+      }
+
       try {
-        summary = await summarizeCall(transcript, openAiApiKey);
+        extractedFields = await extractLeadFields(transcript, openAiApiKey);
       } catch (error) {
-        console.error("Webhook summary generation error:", error);
+        console.error("Webhook lead extraction error:", error);
+      }
+
+      try {
+        const appointmentResult = await extractAppointment(transcript, openAiApiKey);
+        const scheduledIso = normalizeString(appointmentResult.scheduled_at_iso);
+        const scheduledAt = scheduledIso ? Date.parse(scheduledIso) : NaN;
+        const scheduledAtValue = Number.isNaN(scheduledAt)
+          ? undefined
+          : scheduledAt;
+        const preferredWindow = normalizeString(appointmentResult.preferred_window);
+        const scheduledForText = normalizeString(scheduledIso) ?? preferredWindow;
+
+        await client.mutation(api.appointments.upsertForSessionFromWebhook, {
+          secret: webhookSecret,
+          sessionId,
+          contactName: normalizeString(appointmentResult.customer_name),
+          phone: normalizeString(appointmentResult.phone),
+          address: normalizeString(appointmentResult.address),
+          reason: normalizeString(appointmentResult.reason),
+          scheduledAt: scheduledAtValue,
+          scheduledForText,
+          notes: normalizeString(appointmentResult.notes),
+          summary: normalizeString(appointmentResult.summary),
+        });
+      } catch (error) {
+        console.error("Webhook appointment extraction error:", error);
       }
     }
 
-    try {
-      extractedFields = await extractLeadFields(transcript, openAiApiKey);
-    } catch (error) {
-      console.error("Webhook lead extraction error:", error);
+    if (!extractedFields.phone && callerPhone) {
+      extractedFields.phone = callerPhone;
     }
+    memoryFacts = buildMemoryFacts(extractedFields);
 
-    try {
-      const appointmentResult = await extractAppointment(transcript, openAiApiKey);
-      const scheduledIso = normalizeString(appointmentResult.scheduled_at_iso);
-      const scheduledAt = scheduledIso ? Date.parse(scheduledIso) : NaN;
-      const scheduledAtValue = Number.isNaN(scheduledAt)
-        ? undefined
-        : scheduledAt;
-      const preferredWindow = normalizeString(appointmentResult.preferred_window);
-      const scheduledForText = normalizeString(scheduledIso) ?? preferredWindow;
+    await client.mutation(api.chatSessions.finalizeSessionFromWebhook, {
+      secret: webhookSecret,
+      sessionId,
+      endedAt,
+      summary: summary || undefined,
+      extractedFields: Object.keys(extractedFields).length
+        ? extractedFields
+        : undefined,
+      memoryFacts: memoryFacts.length ? memoryFacts : undefined,
+    });
 
-      await client.mutation(api.appointments.upsertForSessionFromWebhook, {
-        secret: webhookSecret,
-        sessionId: sessionId as Id<"chatSessions">,
-        contactName: normalizeString(appointmentResult.customer_name),
-        phone: normalizeString(appointmentResult.phone),
-        address: normalizeString(appointmentResult.address),
-        reason: normalizeString(appointmentResult.reason),
-        scheduledAt: scheduledAtValue,
-        scheduledForText,
-        notes: normalizeString(appointmentResult.notes),
-        summary: normalizeString(appointmentResult.summary),
-      });
-    } catch (error) {
-      console.error("Webhook appointment extraction error:", error);
+    await client.mutation(api.workspaces.recordElevenLabsWebhookHealth, {
+      secret: webhookSecret,
+      workspaceId: workspaceIdForHealth,
+      status: "success",
+      eventType: eventType || "post_call_transcription",
+      message:
+        messages.length > 0
+          ? `Processed ${messages.length} transcript turns`
+          : "Processed call with no transcript turns",
+      conversationId,
+    });
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown webhook error";
+    console.error("ElevenLabs webhook processing error:", error);
+    if (workspaceIdForHealth) {
+      try {
+        await client.mutation(api.workspaces.recordElevenLabsWebhookHealth, {
+          secret: webhookSecret,
+          workspaceId: workspaceIdForHealth,
+          status: "error",
+          eventType: eventType || "post_call_transcription",
+          message: errorMessage,
+          conversationId,
+        });
+      } catch (healthError) {
+        console.error("Failed to persist webhook health error:", healthError);
+      }
     }
+    return NextResponse.json(
+      { error: "Webhook processing failed" },
+      { status: 500 }
+    );
   }
-
-  if (!extractedFields.phone && callerPhone) {
-    extractedFields.phone = callerPhone;
-  }
-  memoryFacts = buildMemoryFacts(extractedFields);
-
-  await client.mutation(api.chatSessions.finalizeSessionFromWebhook, {
-    secret: webhookSecret,
-    sessionId,
-    endedAt,
-    summary: summary || undefined,
-    extractedFields: Object.keys(extractedFields).length ? extractedFields : undefined,
-    memoryFacts: memoryFacts.length ? memoryFacts : undefined,
-  });
 
   return NextResponse.json({ success: true, sessionId });
 }
