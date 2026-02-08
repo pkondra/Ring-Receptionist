@@ -70,6 +70,17 @@ export default defineSchema({
     billingInterval: v.optional(v.string()),
     currentPeriodStart: v.optional(v.number()),
     currentPeriodEnd: v.optional(v.number()),
+    lastElevenlabsWebhookAt: v.optional(v.number()),
+    lastElevenlabsWebhookStatus: v.optional(
+      v.union(
+        v.literal("received"),
+        v.literal("success"),
+        v.literal("error")
+      )
+    ),
+    lastElevenlabsWebhookEventType: v.optional(v.string()),
+    lastElevenlabsWebhookMessage: v.optional(v.string()),
+    lastElevenlabsWebhookConversationId: v.optional(v.string()),
   }).index("by_owner", ["ownerId"]),
 
   agentConfigs: defineTable({
@@ -96,7 +107,8 @@ export default defineSchema({
   })
     .index("by_workspace", ["workspaceId"])
     .index("by_elevenlabs_agent_id", ["elevenlabsAgentId"])
-    .index("by_assigned_phone_number", ["assignedPhoneNumber"]),
+    .index("by_assigned_phone_number", ["assignedPhoneNumber"])
+    .index("by_elevenlabs_phone_number_id", ["elevenlabsPhoneNumberId"]),
 
   chatSessions: defineTable({
     workspaceId: v.id("workspaces"),

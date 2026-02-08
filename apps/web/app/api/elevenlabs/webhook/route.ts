@@ -129,6 +129,24 @@ function toMessages(
   transcript: unknown,
   startTimeUnixSeconds?: number
 ): TranscriptMessage[] {
+  if (typeof transcript === "string") {
+    return transcript
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const lower = line.toLowerCase();
+        const isAgent =
+          lower.startsWith("agent:") || lower.startsWith("assistant:");
+        const content = line.replace(/^[^:]+:\s*/, "").trim();
+        return {
+          role: isAgent ? "agent" : "user",
+          content,
+        } as TranscriptMessage;
+      })
+      .filter((row) => row.content.length > 0);
+  }
+
   if (!Array.isArray(transcript)) return [];
 
   const messages: TranscriptMessage[] = [];
@@ -368,10 +386,6 @@ export async function POST(req: NextRequest) {
         ? payload.event_type
         : "";
 
-  if (eventType !== "post_call_transcription") {
-    return NextResponse.json({ success: true, ignored: eventType || "unknown" });
-  }
-
   const data =
     payload.data && typeof payload.data === "object"
       ? (payload.data as Record<string, unknown>)
@@ -381,12 +395,15 @@ export async function POST(req: NextRequest) {
   }
 
   const agentId = normalizeString(
-    (data.agent_id as string | undefined) ?? (data.agentId as string | undefined)
+    (data.agent_id as string | undefined) ??
+      (data.agentId as string | undefined) ??
+      (data.agent as string | undefined)
   );
   const conversationId = normalizeString(
     (data.conversation_id as string | undefined) ??
       (data.conversationId as string | undefined) ??
-      (data.call_id as string | undefined)
+      (data.call_id as string | undefined) ??
+      (data.id as string | undefined)
   );
   if (!agentId || !conversationId) {
     return NextResponse.json(
@@ -403,15 +420,29 @@ export async function POST(req: NextRequest) {
     metadata.phone_call && typeof metadata.phone_call === "object"
       ? (metadata.phone_call as Record<string, unknown>)
       : {};
+  const metadataBody =
+    metadata.body && typeof metadata.body === "object"
+      ? (metadata.body as Record<string, unknown>)
+      : {};
 
   const calledPhoneNumber = normalizeString(
     (phoneCallMeta.to_number as string | undefined) ??
-      (metadata.to_number as string | undefined)
+      (metadata.to_number as string | undefined) ??
+      (metadataBody.Called as string | undefined) ??
+      (metadataBody.To as string | undefined)
   );
   const callerPhone = normalizeString(
     (phoneCallMeta.from_number as string | undefined) ??
       (metadata.from_number as string | undefined) ??
+      (metadataBody.From as string | undefined) ??
       (data.caller_phone as string | undefined)
+  );
+  const elevenlabsPhoneNumberId = normalizeString(
+    (phoneCallMeta.phone_number_id as string | undefined) ??
+      (phoneCallMeta.agent_phone_number_id as string | undefined) ??
+      (metadata.phone_number_id as string | undefined) ??
+      (metadataBody.phone_number_id as string | undefined) ??
+      (data.phone_number_id as string | undefined)
   );
 
   const startTimeUnixSeconds =
@@ -430,6 +461,10 @@ export async function POST(req: NextRequest) {
     : Date.now();
 
   const messages = toMessages(data.transcript, startTimeUnixSeconds);
+  if (eventType && eventType !== "post_call_transcription" && messages.length === 0) {
+    return NextResponse.json({ success: true, ignored: eventType });
+  }
+
   const transcript = toTranscript(messages);
 
   const client = new ConvexHttpClient(convexUrl);
@@ -437,6 +472,7 @@ export async function POST(req: NextRequest) {
     secret: webhookSecret,
     elevenlabsAgentId: agentId,
     externalCallId: conversationId,
+    elevenlabsPhoneNumberId,
     callerPhone,
     calledPhoneNumber,
     startedAt,
@@ -463,6 +499,10 @@ export async function POST(req: NextRequest) {
   let extractedFields: ExtractedFields = {};
   let memoryFacts: Array<{ key: string; value: string }> = [];
 
+  if (callerPhone) {
+    extractedFields.phone = callerPhone;
+  }
+
   const openAiApiKey = process.env.OPENAI_API_KEY;
   if (transcript && openAiApiKey) {
     if (!summary) {
@@ -475,7 +515,6 @@ export async function POST(req: NextRequest) {
 
     try {
       extractedFields = await extractLeadFields(transcript, openAiApiKey);
-      memoryFacts = buildMemoryFacts(extractedFields);
     } catch (error) {
       console.error("Webhook lead extraction error:", error);
     }
@@ -506,6 +545,11 @@ export async function POST(req: NextRequest) {
       console.error("Webhook appointment extraction error:", error);
     }
   }
+
+  if (!extractedFields.phone && callerPhone) {
+    extractedFields.phone = callerPhone;
+  }
+  memoryFacts = buildMemoryFacts(extractedFields);
 
   await client.mutation(api.chatSessions.finalizeSessionFromWebhook, {
     secret: webhookSecret,

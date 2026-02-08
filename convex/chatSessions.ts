@@ -60,6 +60,7 @@ export const upsertSessionFromWebhook = mutation({
     secret: v.string(),
     elevenlabsAgentId: v.string(),
     externalCallId: v.string(),
+    elevenlabsPhoneNumberId: v.optional(v.string()),
     callerPhone: v.optional(v.string()),
     calledPhoneNumber: v.optional(v.string()),
     startedAt: v.optional(v.number()),
@@ -74,6 +75,15 @@ export const upsertSessionFromWebhook = mutation({
         q.eq("elevenlabsAgentId", args.elevenlabsAgentId)
       )
       .unique();
+    const elevenlabsPhoneNumberId = args.elevenlabsPhoneNumberId;
+    if (!agentConfig && elevenlabsPhoneNumberId) {
+      agentConfig = await ctx.db
+        .query("agentConfigs")
+        .withIndex("by_elevenlabs_phone_number_id", (q) =>
+          q.eq("elevenlabsPhoneNumberId", elevenlabsPhoneNumberId)
+        )
+        .first();
+    }
     if (!agentConfig && args.calledPhoneNumber) {
       agentConfig = await ctx.db
         .query("agentConfigs")
@@ -110,10 +120,10 @@ export const upsertSessionFromWebhook = mutation({
         status,
         ...(endedAt ? { endedAt } : {}),
       });
-      return existing._id;
+      return { sessionId: existing._id, workspaceId: agentConfig.workspaceId };
     }
 
-    return await ctx.db.insert("chatSessions", {
+    const sessionId = await ctx.db.insert("chatSessions", {
       workspaceId: agentConfig.workspaceId,
       agentConfigId: agentConfig._id,
       userId: workspace.ownerId,
@@ -124,6 +134,8 @@ export const upsertSessionFromWebhook = mutation({
       startedAt,
       ...(endedAt ? { endedAt } : {}),
     });
+
+    return { sessionId, workspaceId: agentConfig.workspaceId };
   },
 });
 
@@ -284,11 +296,13 @@ export const listLeadsForWorkspace = query({
       .order("desc")
       .take(100);
 
-    const leads = sessions.filter((session) =>
-      session.extractedFields
+    const leads = sessions.filter((session) => {
+      const hasExtracted = session.extractedFields
         ? Object.values(session.extractedFields).some(Boolean)
-        : false
-    );
+        : false;
+      const hasFallback = Boolean(session.callerPhone || session.summary);
+      return hasExtracted || hasFallback;
+    });
 
     const agentMap = new Map();
     for (const session of leads) {
@@ -302,8 +316,15 @@ export const listLeadsForWorkspace = query({
 
     return leads.map((session) => {
       const agent = agentMap.get(session.agentConfigId);
+      const extractedFields = session.extractedFields
+        ? { ...session.extractedFields }
+        : {};
+      if (!extractedFields.phone && session.callerPhone) {
+        extractedFields.phone = session.callerPhone;
+      }
       return {
         ...session,
+        extractedFields,
         agentName: agent?.agentName ?? "Unknown Agent",
         businessName: agent?.businessName ?? "",
       };
