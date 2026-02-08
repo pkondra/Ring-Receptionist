@@ -63,6 +63,8 @@ export const createAgent = mutation({
         customSchedule: v.optional(v.string()),
       })
     ),
+    assignedPhoneNumber: v.optional(v.string()),
+    elevenlabsPhoneNumberId: v.optional(v.string()),
     qualificationGoals: v.array(
       v.object({
         key: v.string(),
@@ -102,6 +104,8 @@ export const createAgent = mutation({
       voiceId: args.voiceId ?? DEFAULT_VOICE_ID,
       onboardingWebsiteUrl: args.onboardingWebsiteUrl,
       callHandling: args.callHandling,
+      assignedPhoneNumber: args.assignedPhoneNumber,
+      elevenlabsPhoneNumberId: args.elevenlabsPhoneNumberId,
       qualificationGoals: args.qualificationGoals,
       emergencyProtocol: args.emergencyProtocol,
       isDefault: !existingAgent,
@@ -189,6 +193,8 @@ export const updateAgentConfig = mutation({
         customSchedule: v.optional(v.string()),
       })
     ),
+    assignedPhoneNumber: v.optional(v.string()),
+    elevenlabsPhoneNumberId: v.optional(v.string()),
     qualificationGoals: v.optional(
       v.array(
         v.object({
@@ -232,6 +238,10 @@ export const updateAgentConfig = mutation({
     if (fields.onboardingWebsiteUrl !== undefined)
       patch.onboardingWebsiteUrl = fields.onboardingWebsiteUrl;
     if (fields.callHandling !== undefined) patch.callHandling = fields.callHandling;
+    if (fields.assignedPhoneNumber !== undefined)
+      patch.assignedPhoneNumber = fields.assignedPhoneNumber;
+    if (fields.elevenlabsPhoneNumberId !== undefined)
+      patch.elevenlabsPhoneNumberId = fields.elevenlabsPhoneNumberId;
     if (fields.qualificationGoals !== undefined)
       patch.qualificationGoals = fields.qualificationGoals;
     if (fields.emergencyProtocol !== undefined)

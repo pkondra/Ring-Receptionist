@@ -41,6 +41,8 @@ export default function AgentSettingsPage() {
   const [toneStyle, setToneStyle] = useState("");
   const [toneDescription, setToneDescription] = useState("");
   const [customContext, setCustomContext] = useState("");
+  const [assignedPhoneNumber, setAssignedPhoneNumber] = useState("");
+  const [elevenlabsPhoneNumberId, setElevenlabsPhoneNumberId] = useState("");
   const [voiceId, setVoiceId] = useState(DEFAULT_VOICE_ID);
   const [qualificationGoals, setQualificationGoals] = useState<
     QualificationGoal[]
@@ -77,6 +79,8 @@ export default function AgentSettingsPage() {
       setToneStyle(agent.tone.style);
       setToneDescription(agent.tone.description);
       setCustomContext(agent.customContext ?? "");
+      setAssignedPhoneNumber(agent.assignedPhoneNumber ?? "");
+      setElevenlabsPhoneNumberId(agent.elevenlabsPhoneNumberId ?? "");
       setVoiceId(agent.voiceId ?? DEFAULT_VOICE_ID);
       setQualificationGoals(
         agent.qualificationGoals.map((g) => ({
@@ -173,6 +177,8 @@ export default function AgentSettingsPage() {
         businessName,
         tone: { style: toneStyle, description: toneDescription },
         customContext,
+        assignedPhoneNumber: assignedPhoneNumber.trim(),
+        elevenlabsPhoneNumberId: elevenlabsPhoneNumberId.trim(),
         voiceId: voiceId || DEFAULT_VOICE_ID,
         qualificationGoals,
         emergencyProtocol,
@@ -451,7 +457,47 @@ export default function AgentSettingsPage() {
       {/* Voice */}
       <div className="surface-card p-6 space-y-4">
         <div className="flex items-center gap-2">
-          <span className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs">2</span>
+          <span className="w-6 h-6 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center text-xs">2</span>
+          <h2 className="text-sm font-semibold text-zinc-900">
+            Phone Assignment (Optional)
+          </h2>
+        </div>
+        <p className="text-sm text-zinc-500">
+          Store the real phone number connected in ElevenLabs for this agent.
+          This is optional and can be updated later.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+              Assigned Phone Number
+            </label>
+            <input
+              type="text"
+              value={assignedPhoneNumber}
+              onChange={(e) => setAssignedPhoneNumber(e.target.value)}
+              placeholder="+971501234567"
+              className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+              ElevenLabs Phone Number ID
+            </label>
+            <input
+              type="text"
+              value={elevenlabsPhoneNumberId}
+              onChange={(e) => setElevenlabsPhoneNumberId(e.target.value)}
+              placeholder="Optional internal number id"
+              className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Voice */}
+      <div className="surface-card p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <span className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs">3</span>
           <h2 className="text-sm font-semibold text-zinc-900">Voice</h2>
         </div>
         <p className="text-sm text-zinc-500">
@@ -531,7 +577,7 @@ export default function AgentSettingsPage() {
       {/* Custom Context / System Prompt */}
       <div className="surface-card p-6 space-y-4">
         <h2 className="text-sm font-semibold text-zinc-900 flex items-center gap-2">
-          <span className="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-xs">3</span>
+          <span className="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-xs">4</span>
           Custom Context
         </h2>
         <p className="text-sm text-zinc-500">
@@ -549,7 +595,7 @@ export default function AgentSettingsPage() {
       {/* Qualification Goals */}
       <div className="surface-card p-6">
         <div className="flex items-center gap-2 mb-4">
-          <span className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs">4</span>
+          <span className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs">5</span>
           <h2 className="text-sm font-semibold text-zinc-900">Qualification Goals</h2>
         </div>
         <QualificationGoalsEditor
@@ -561,7 +607,7 @@ export default function AgentSettingsPage() {
       {/* Emergency Protocol */}
       <div className="surface-card p-6">
         <div className="flex items-center gap-2 mb-4">
-          <span className="w-6 h-6 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center text-xs">5</span>
+          <span className="w-6 h-6 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center text-xs">6</span>
           <h2 className="text-sm font-semibold text-zinc-900">Emergency Protocol</h2>
         </div>
         <EmergencyProtocolEditor
@@ -573,7 +619,7 @@ export default function AgentSettingsPage() {
       {/* Knowledge Base */}
       <div className="surface-card p-6">
         <div className="flex items-center gap-2 mb-4">
-          <span className="w-6 h-6 rounded-lg bg-yellow-100 text-yellow-700 flex items-center justify-center text-xs">6</span>
+          <span className="w-6 h-6 rounded-lg bg-yellow-100 text-yellow-700 flex items-center justify-center text-xs">7</span>
           <h2 className="text-sm font-semibold text-zinc-900">
             Knowledge Base (Shared)
           </h2>

@@ -12,6 +12,13 @@ const appointmentFields = {
   summary: v.optional(v.string()),
 };
 
+function assertWebhookSecret(secret: string) {
+  const webhookSecret = process.env.ELEVENLABS_WEBHOOK_SECRET;
+  if (!webhookSecret || secret !== webhookSecret) {
+    throw new Error("Unauthorized webhook");
+  }
+}
+
 export const upsertForSession = mutation({
   args: {
     sessionId: v.id("chatSessions"),
@@ -85,6 +92,50 @@ export const listAppointmentsForWorkspace = query({
         agentName: agent?.agentName ?? "Unknown Agent",
         businessName: agent?.businessName ?? "",
       };
+    });
+  },
+});
+
+export const upsertForSessionFromWebhook = mutation({
+  args: {
+    secret: v.string(),
+    sessionId: v.id("chatSessions"),
+    ...appointmentFields,
+  },
+  handler: async (ctx, { secret, sessionId, ...fields }) => {
+    assertWebhookSecret(secret);
+
+    const session = await ctx.db.get(sessionId);
+    if (!session) throw new Error("Session not found");
+
+    const existing = await ctx.db
+      .query("appointments")
+      .withIndex("by_session", (q) => q.eq("sessionId", sessionId))
+      .first();
+
+    const normalized: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(fields)) {
+      if (value !== undefined) normalized[key] = value;
+    }
+
+    const hasScheduledAt = typeof fields.scheduledAt === "number";
+    const nextStatus = hasScheduledAt ? "scheduled" : "needs_followup";
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        ...normalized,
+        ...(hasScheduledAt ? { status: "scheduled" } : {}),
+      });
+      return existing._id;
+    }
+
+    return await ctx.db.insert("appointments", {
+      workspaceId: session.workspaceId,
+      agentConfigId: session.agentConfigId,
+      sessionId,
+      createdAt: Date.now(),
+      status: nextStatus,
+      ...normalized,
     });
   },
 });

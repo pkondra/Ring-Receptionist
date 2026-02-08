@@ -89,14 +89,22 @@ export default defineSchema({
     }),
     onboardingWebsiteUrl: v.optional(v.string()),
     callHandling: v.optional(callHandlingValidator),
+    assignedPhoneNumber: v.optional(v.string()),
+    elevenlabsPhoneNumberId: v.optional(v.string()),
     isDefault: v.boolean(),
     elevenlabsAgentId: v.optional(v.string()),
-  }).index("by_workspace", ["workspaceId"]),
+  })
+    .index("by_workspace", ["workspaceId"])
+    .index("by_elevenlabs_agent_id", ["elevenlabsAgentId"])
+    .index("by_assigned_phone_number", ["assignedPhoneNumber"]),
 
   chatSessions: defineTable({
     workspaceId: v.id("workspaces"),
     agentConfigId: v.id("agentConfigs"),
     userId: v.id("users"),
+    source: v.optional(v.union(v.literal("web"), v.literal("phone"))),
+    externalCallId: v.optional(v.string()),
+    callerPhone: v.optional(v.string()),
     status: v.union(v.literal("active"), v.literal("ended")),
     startedAt: v.number(),
     endedAt: v.optional(v.number()),
@@ -105,7 +113,8 @@ export default defineSchema({
     summary: v.optional(v.string()),
   })
     .index("by_workspace", ["workspaceId"])
-    .index("by_agent", ["agentConfigId"]),
+    .index("by_agent", ["agentConfigId"])
+    .index("by_external_call_id", ["externalCallId"]),
 
   chatMessages: defineTable({
     sessionId: v.id("chatSessions"),
