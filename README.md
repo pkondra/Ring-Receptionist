@@ -4,7 +4,7 @@ AI receptionist SaaS for service businesses (plumbers, HVAC, electrical, movers,
 
 ## Current Status
 
-### What works
+### What works2
 
 - Marketing + service pages:
   - `/`
