@@ -43,6 +43,8 @@ export default function AgentSettingsPage() {
   const [customContext, setCustomContext] = useState("");
   const [assignedPhoneNumber, setAssignedPhoneNumber] = useState("");
   const [elevenlabsPhoneNumberId, setElevenlabsPhoneNumberId] = useState("");
+  const provisionCountryCode = "CA";
+  const [provisionAreaCode, setProvisionAreaCode] = useState("");
   const [voiceId, setVoiceId] = useState(DEFAULT_VOICE_ID);
   const [qualificationGoals, setQualificationGoals] = useState<
     QualificationGoal[]
@@ -56,6 +58,7 @@ export default function AgentSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [settingDefault, setSettingDefault] = useState(false);
+  const [provisioningNumber, setProvisioningNumber] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{
@@ -257,6 +260,65 @@ export default function AgentSettingsPage() {
       });
     } finally {
       setSettingDefault(false);
+    }
+  };
+
+  const handleProvisionNumber = async () => {
+    if (!agent) return;
+    setSaveMessage(null);
+
+    if (!agent.elevenlabsAgentId) {
+      setSaveMessage({
+        type: "error",
+        text: "Save & Sync this agent to ElevenLabs before buying a phone number.",
+      });
+      return;
+    }
+
+    const normalizedAreaCode = provisionAreaCode.trim();
+    if (normalizedAreaCode && Number.isNaN(Number(normalizedAreaCode))) {
+      setSaveMessage({
+        type: "error",
+        text: "Area code must be numeric.",
+      });
+      return;
+    }
+
+    setProvisioningNumber(true);
+    try {
+      const res = await fetch("/api/phone-numbers/provision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agentConfigId: agent._id,
+          countryCode: provisionCountryCode,
+          areaCode: normalizedAreaCode || undefined,
+        }),
+      });
+
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        phoneNumber?: string;
+        phoneNumberId?: string;
+      };
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to provision phone number");
+      }
+
+      setAssignedPhoneNumber(data.phoneNumber ?? "");
+      setElevenlabsPhoneNumberId(data.phoneNumberId ?? "");
+      setSaveMessage({
+        type: "success",
+        text: "Phone number purchased and assigned to this agent.",
+      });
+    } catch (err) {
+      setSaveMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : "Failed to provision number",
+      });
+    } finally {
+      setProvisioningNumber(false);
     }
   };
 
@@ -490,6 +552,37 @@ export default function AgentSettingsPage() {
               placeholder="Optional internal number id"
               className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
             />
+          </div>
+        </div>
+        <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 space-y-3">
+          <p className="text-sm text-zinc-600">
+            Buy and assign a real number automatically with Twilio + ElevenLabs.
+            Requires an active/trial subscription and a synced agent. Canada
+            numbers only for now.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <input
+              type="text"
+              value={provisionCountryCode}
+              readOnly
+              aria-label="Country code"
+              className="rounded-xl border border-zinc-300 bg-zinc-100 px-3 py-2.5 text-sm font-medium text-zinc-700"
+            />
+            <input
+              type="text"
+              value={provisionAreaCode}
+              onChange={(e) => setProvisionAreaCode(e.target.value)}
+              placeholder="Area code (optional)"
+              className="rounded-xl border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+            />
+            <button
+              type="button"
+              onClick={handleProvisionNumber}
+              disabled={provisioningNumber || saving}
+              className="rounded-xl px-4 py-2.5 text-sm font-medium btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {provisioningNumber ? "Buying Number..." : "Buy + Assign Number"}
+            </button>
           </div>
         </div>
       </div>
