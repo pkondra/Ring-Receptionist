@@ -653,6 +653,10 @@ export async function POST(req: NextRequest) {
               address: normalizeString(extractedFields.address),
               reason: normalizeString(extractedFields.reason),
               urgency: normalizeString(extractedFields.urgency),
+              summary:
+                summary ||
+                normalizeString(notificationContext.summary) ||
+                undefined,
               dashboardUrl: `${appBaseUrl}/dashboard/leads`,
             });
             markLeadNotification = true;

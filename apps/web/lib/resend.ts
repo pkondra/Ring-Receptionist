@@ -26,6 +26,7 @@ type LeadEmailArgs = {
   address?: string | null;
   reason?: string | null;
   urgency?: string | null;
+  summary?: string | null;
   dashboardUrl: string;
 };
 
@@ -119,6 +120,7 @@ export async function sendWelcomeEmail(args: WelcomeEmailArgs) {
 
 export async function sendCallCompletedEmail(args: CallEmailArgs) {
   const duration = formatDuration(args.startedAt, args.endedAt);
+  const summaryText = args.summary?.trim() || "No summary available for this call.";
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;color:#111827;">
       <h2 style="margin:0 0 14px 0;font-size:22px;">New call completed</h2>
@@ -128,7 +130,7 @@ export async function sendCallCompletedEmail(args: CallEmailArgs) {
       ${line("Agent", args.agentName)}
       ${line("Caller phone", args.callerPhone)}
       ${line("Duration", duration)}
-      ${line("Summary", args.summary)}
+      ${line("Summary", summaryText)}
       <p style="margin:16px 0 0 0;">
         <a href="${escapeHtml(
           args.dashboardUrl
@@ -144,6 +146,7 @@ export async function sendCallCompletedEmail(args: CallEmailArgs) {
 }
 
 export async function sendLeadCapturedEmail(args: LeadEmailArgs) {
+  const summaryText = args.summary?.trim() || "No summary available for this call.";
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;color:#111827;">
       <h2 style="margin:0 0 14px 0;font-size:22px;">New lead captured</h2>
@@ -155,6 +158,7 @@ export async function sendLeadCapturedEmail(args: LeadEmailArgs) {
       ${line("Address", args.address)}
       ${line("Service", args.reason)}
       ${line("Urgency", args.urgency)}
+      ${line("Summary", summaryText)}
       <p style="margin:16px 0 0 0;">
         <a href="${escapeHtml(
           args.dashboardUrl
