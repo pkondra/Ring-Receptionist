@@ -3,6 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
+import {
+  sendCallCompletedEmail,
+  sendLeadCapturedEmail,
+} from "@/lib/resend";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -78,6 +82,27 @@ function normalizeString(value?: string | null) {
   if (!value) return undefined;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function hasLeadData(fields: ExtractedFields) {
+  return Boolean(
+    normalizeString(fields.callerName) ||
+      normalizeString(fields.address) ||
+      normalizeString(fields.reason) ||
+      normalizeString(fields.numberOfTrees) ||
+      normalizeString(fields.sizeEstimate) ||
+      normalizeString(fields.urgency) ||
+      normalizeString(fields.hazards) ||
+      normalizeString(fields.accessConstraints) ||
+      normalizeString(fields.preferredWindow)
+  );
+}
+
+function getAppBaseUrl(fallbackOrigin: string) {
+  return (
+    process.env.NEXT_PUBLIC_APP_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : fallbackOrigin)
+  );
 }
 
 function parseSignatureHeader(signatureHeader: string) {
@@ -578,6 +603,74 @@ export async function POST(req: NextRequest) {
         : undefined,
       memoryFacts: memoryFacts.length ? memoryFacts : undefined,
     });
+
+    if (process.env.RESEND_API_KEY) {
+      try {
+        const notificationContext = await client.mutation(
+          api.chatSessions.getEmailNotificationContextFromWebhook,
+          {
+            secret: webhookSecret,
+            sessionId,
+          }
+        );
+        const recipient = normalizeString(notificationContext.ownerEmail);
+        if (recipient) {
+          const appBaseUrl = getAppBaseUrl(req.nextUrl.origin);
+          let markCallNotification = false;
+          let markLeadNotification = false;
+
+          if (!notificationContext.callNotificationEmailSentAt) {
+            await sendCallCompletedEmail({
+              to: recipient,
+              ownerName: notificationContext.ownerName,
+              businessName: notificationContext.businessName,
+              agentName: notificationContext.agentName,
+              callerPhone:
+                normalizeString(extractedFields.phone) ??
+                normalizeString(notificationContext.callerPhone) ??
+                undefined,
+              summary: summary || undefined,
+              startedAt: notificationContext.startedAt,
+              endedAt: notificationContext.endedAt ?? endedAt,
+              dashboardUrl: `${appBaseUrl}/dashboard/calls`,
+            });
+            markCallNotification = true;
+          }
+
+          if (
+            hasLeadData(extractedFields) &&
+            !notificationContext.leadNotificationEmailSentAt
+          ) {
+            await sendLeadCapturedEmail({
+              to: recipient,
+              ownerName: notificationContext.ownerName,
+              businessName: notificationContext.businessName,
+              callerName: normalizeString(extractedFields.callerName),
+              callerPhone:
+                normalizeString(extractedFields.phone) ??
+                normalizeString(notificationContext.callerPhone) ??
+                undefined,
+              address: normalizeString(extractedFields.address),
+              reason: normalizeString(extractedFields.reason),
+              urgency: normalizeString(extractedFields.urgency),
+              dashboardUrl: `${appBaseUrl}/dashboard/leads`,
+            });
+            markLeadNotification = true;
+          }
+
+          if (markCallNotification || markLeadNotification) {
+            await client.mutation(api.chatSessions.markEmailNotificationsSentFromWebhook, {
+              secret: webhookSecret,
+              sessionId,
+              markCallNotification,
+              markLeadNotification,
+            });
+          }
+        }
+      } catch (emailError) {
+        console.error("Webhook email notification error:", emailError);
+      }
+    }
 
     await client.mutation(api.workspaces.recordElevenLabsWebhookHealth, {
       secret: webhookSecret,

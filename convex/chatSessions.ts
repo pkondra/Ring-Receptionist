@@ -227,6 +227,78 @@ export const finalizeSessionFromWebhook = mutation({
   },
 });
 
+export const getEmailNotificationContextFromWebhook = mutation({
+  args: {
+    secret: v.string(),
+    sessionId: v.id("chatSessions"),
+  },
+  handler: async (ctx, args) => {
+    assertWebhookSecret(args.secret);
+
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) throw new Error("Session not found");
+
+    const workspace = await ctx.db.get(session.workspaceId);
+    if (!workspace) throw new Error("Workspace not found");
+
+    const owner = await ctx.db.get(workspace.ownerId);
+    const agent = await ctx.db.get(session.agentConfigId);
+
+    return {
+      sessionId: session._id,
+      workspaceId: session.workspaceId,
+      ownerEmail: owner?.email ?? null,
+      ownerName: owner?.name ?? null,
+      workspaceName: workspace.name,
+      agentName: agent?.agentName ?? "Receptionist",
+      businessName: agent?.businessName ?? workspace.name,
+      startedAt: session.startedAt,
+      endedAt: session.endedAt ?? null,
+      callerPhone: session.callerPhone ?? null,
+      summary: session.summary ?? null,
+      extractedFields: session.extractedFields ?? null,
+      callNotificationEmailSentAt: session.callNotificationEmailSentAt ?? null,
+      leadNotificationEmailSentAt: session.leadNotificationEmailSentAt ?? null,
+    };
+  },
+});
+
+export const markEmailNotificationsSentFromWebhook = mutation({
+  args: {
+    secret: v.string(),
+    sessionId: v.id("chatSessions"),
+    markCallNotification: v.optional(v.boolean()),
+    markLeadNotification: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    assertWebhookSecret(args.secret);
+
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) throw new Error("Session not found");
+
+    const patch: Record<string, number> = {};
+    const now = Date.now();
+
+    if (args.markCallNotification && !session.callNotificationEmailSentAt) {
+      patch.callNotificationEmailSentAt = now;
+    }
+    if (args.markLeadNotification && !session.leadNotificationEmailSentAt) {
+      patch.leadNotificationEmailSentAt = now;
+    }
+
+    if (Object.keys(patch).length > 0) {
+      await ctx.db.patch(session._id, patch);
+    }
+
+    return {
+      callNotificationEmailSentAt:
+        patch.callNotificationEmailSentAt ?? session.callNotificationEmailSentAt ?? null,
+      leadNotificationEmailSentAt:
+        patch.leadNotificationEmailSentAt ?? session.leadNotificationEmailSentAt ?? null,
+    };
+  },
+});
+
 export const getSession = query({
   args: { sessionId: v.id("chatSessions") },
   handler: async (ctx, { sessionId }) => {

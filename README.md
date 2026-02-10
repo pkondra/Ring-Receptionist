@@ -104,6 +104,9 @@ Required keys include:
 - `NEXT_PUBLIC_CONVEX_URL`
 - `ELEVENLABS_API_KEY`
 - `OPENAI_API_KEY`
+- `RESEND_API_KEY`
+- `RESEND_FROM_EMAIL` (example: `Ring Receptionist <noreply@hello.ringreceptionist.com>`)
+- `NEXT_PUBLIC_APP_URL` (production base URL for dashboard links in emails)
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
 - `STRIPE_PRICE_STARTER_MONTHLY`
@@ -118,6 +121,7 @@ Important:
 
 - `STRIPE_SECRET_KEY` must be an `sk_...` secret key.
 - `STRIPE_WEBHOOK_SECRET` must be a `whsec_...` webhook signing secret.
+- `RESEND_FROM_EMAIL` should use your verified Resend domain/sender identity.
 
 Set `CLERK_JWT_ISSUER_DOMAIN` in Convex dashboard env (not local file).
 
@@ -210,6 +214,25 @@ Subscribe to at least:
 - Rotate any key accidentally exposed in screenshots/logs.
 - Use least-privilege keys for external services where possible.
 
+## Email Notifications (Resend)
+
+- Welcome email:
+  - Triggered once per user after account setup.
+  - Route: `/api/notifications/welcome` (idempotent, checks `welcomeEmailSentAt`).
+- Call notifications:
+  - Sent when post-call webhook finalizes a session.
+  - Includes call summary/details and link to `/dashboard/calls`.
+- Lead notifications:
+  - Sent when extracted lead fields are present.
+  - Includes lead details and link to `/dashboard/leads`.
+
+Resend setup checklist:
+
+1. Verify `hello.ringreceptionist.com` in Resend and wait until DNS status is `Verified`.
+2. Set `RESEND_API_KEY` in Vercel project env.
+3. Set `RESEND_FROM_EMAIL` to a verified sender on that domain.
+4. Redeploy.
+
 ## Troubleshooting
 
 ### `No address provided to ConvexReactClient`
@@ -231,4 +254,3 @@ lsof -ti:3002 | xargs kill -9
 - Verify `STRIPE_SECRET_KEY` is secret key (`sk_...`)
 - Verify all Stripe price IDs exist in your Stripe account
 - Verify webhook secret is `whsec_...`
-

@@ -4,6 +4,7 @@ import { fetchMutation, fetchQuery } from "convex/nextjs";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import Stripe from "stripe";
+import { sendWelcomeEmail } from "@/lib/resend";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -67,11 +68,26 @@ export async function POST(req: NextRequest) {
   );
 
   if (!workspace) {
-    await fetchMutation(
+    const setupResult = await fetchMutation(
       api.users.ensureAccountSetup,
       { createDefaultAgent: false },
       { token }
     );
+    if (setupResult?.createdUser && setupResult?.userEmail) {
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL ??
+        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : req.nextUrl.origin);
+      try {
+        await sendWelcomeEmail({
+          to: setupResult.userEmail,
+          name: setupResult.userName,
+          dashboardUrl: `${baseUrl}/dashboard`,
+        });
+        await fetchMutation(api.users.markWelcomeEmailSent, {}, { token });
+      } catch (error) {
+        console.error("Welcome email send failed during checkout:", error);
+      }
+    }
     workspace = await fetchQuery(api.workspaces.getMyWorkspace, {}, { token });
   }
 

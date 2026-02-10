@@ -1,4 +1,4 @@
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import {
   DEFAULT_AGENT_NAME,
@@ -27,6 +27,7 @@ export const ensureAccountSetup = mutation({
       .unique();
 
     let userId;
+    let createdUser = false;
     if (existingUser) {
       userId = existingUser._id;
       await ctx.db.patch(userId, {
@@ -36,6 +37,7 @@ export const ensureAccountSetup = mutation({
         ...(existingUser.existingPlan ? {} : {}),
       });
     } else {
+      createdUser = true;
       userId = await ctx.db.insert("users", {
         tokenIdentifier: identity.tokenIdentifier,
         clerkUserId: identity.subject,
@@ -43,6 +45,7 @@ export const ensureAccountSetup = mutation({
         name: identity.name,
         imageUrl: identity.pictureUrl,
         existingPlan: undefined,
+        welcomeEmailSentAt: undefined,
       });
     }
 
@@ -224,7 +227,28 @@ export const ensureAccountSetup = mutation({
       }
     }
 
-    return { userId, workspaceId };
+    return {
+      userId,
+      workspaceId,
+      createdUser,
+      userEmail: identity.email ?? existingUser?.email ?? null,
+      userName: identity.name ?? existingUser?.name ?? null,
+    };
+  },
+});
+
+export const getMyUser = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+
+    return await ctx.db
+      .query("users")
+      .withIndex("by_token", (q) =>
+        q.eq("tokenIdentifier", identity.tokenIdentifier)
+      )
+      .unique();
   },
 });
 
@@ -266,5 +290,31 @@ export const updateUserProfile = mutation({
     if (Object.keys(patch).length > 0) {
       await ctx.db.patch(existingUser._id, patch);
     }
+  },
+});
+
+export const markWelcomeEmailSent = mutation({
+  args: {
+    sentAt: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_token", (q) =>
+        q.eq("tokenIdentifier", identity.tokenIdentifier)
+      )
+      .unique();
+    if (!user) throw new Error("User not found");
+
+    if (user.welcomeEmailSentAt) {
+      return user.welcomeEmailSentAt;
+    }
+
+    const sentAt = args.sentAt ?? Date.now();
+    await ctx.db.patch(user._id, { welcomeEmailSentAt: sentAt });
+    return sentAt;
   },
 });

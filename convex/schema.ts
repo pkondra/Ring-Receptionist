@@ -54,6 +54,7 @@ export default defineSchema({
     phone: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
     existingPlan: v.optional(v.string()),
+    welcomeEmailSentAt: v.optional(v.number()),
   })
     .index("by_token", ["tokenIdentifier"])
     .index("by_clerk_id", ["clerkUserId"]),
@@ -123,6 +124,8 @@ export default defineSchema({
     extractedFields: v.optional(extractedFieldsValidator),
     memoryFacts: v.optional(v.array(memoryFactValidator)),
     summary: v.optional(v.string()),
+    callNotificationEmailSentAt: v.optional(v.number()),
+    leadNotificationEmailSentAt: v.optional(v.number()),
   })
     .index("by_workspace", ["workspaceId"])
     .index("by_agent", ["agentConfigId"])

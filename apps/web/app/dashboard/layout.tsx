@@ -17,6 +17,7 @@ export default function DashboardLayout({
   const { isAuthenticated, isLoading } = useConvexAuth();
   const router = useRouter();
   const [setupComplete, setSetupComplete] = useState(false);
+  const [welcomeChecked, setWelcomeChecked] = useState(false);
 
   const ensureAccountSetup = useMutation(api.users.ensureAccountSetup);
   const workspace = useQuery(
@@ -35,6 +36,14 @@ export default function DashboardLayout({
         .catch(console.error);
     }
   }, [isAuthenticated, setupComplete, ensureAccountSetup]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !setupComplete || welcomeChecked) return;
+    setWelcomeChecked(true);
+    fetch("/api/notifications/welcome", { method: "POST" }).catch(() => {
+      // Do not block dashboard access if email service is unavailable.
+    });
+  }, [isAuthenticated, setupComplete, welcomeChecked]);
 
   useEffect(() => {
     if (isLoading) return;

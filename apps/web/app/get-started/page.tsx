@@ -465,6 +465,12 @@ export default function GetStartedPage() {
         phone: contact.phone.trim() || undefined,
       });
 
+      await fetch("/api/notifications/welcome", {
+        method: "POST",
+      }).catch(() => {
+        // Continue onboarding even if email service is temporarily unavailable.
+      });
+
       await createAgent({
         workspaceId,
         agentName: draft.agentName,
