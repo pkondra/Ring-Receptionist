@@ -55,6 +55,7 @@ export default function AgentSettingsPage() {
 
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [syncingNumber, setSyncingNumber] = useState(false);
   const [settingDefault, setSettingDefault] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -258,6 +259,44 @@ export default function AgentSettingsPage() {
     }
   };
 
+  const handleSyncNumber = async () => {
+    if (!agent) return;
+
+    setSyncingNumber(true);
+    setSaveMessage(null);
+    try {
+      const res = await fetch("/api/elevenlabs/sync-number", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agentConfigId: agent._id }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        message?: string;
+        assignedPhoneNumber?: string;
+        elevenlabsPhoneNumberId?: string;
+      };
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to sync phone number");
+      }
+
+      setAssignedPhoneNumber(data.assignedPhoneNumber ?? "");
+      setElevenlabsPhoneNumberId(data.elevenlabsPhoneNumberId ?? "");
+      setSaveMessage({
+        type: "success",
+        text: data.message || "Phone number synced successfully",
+      });
+    } catch (err) {
+      setSaveMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : "Failed to sync phone number",
+      });
+    } finally {
+      setSyncingNumber(false);
+    }
+  };
+
   const handleStopPreview = () => {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -334,6 +373,7 @@ export default function AgentSettingsPage() {
   }
 
   const isConnected = Boolean(agent.elevenlabsAgentId);
+  const needsPhoneSync = !assignedPhoneNumber || !elevenlabsPhoneNumberId;
   const selectedVoice = voices.find((voice) => voice.voice_id === voiceId);
   const selectedMeta = selectedVoice
     ? [
@@ -490,6 +530,30 @@ export default function AgentSettingsPage() {
             />
           </div>
         </div>
+        {needsPhoneSync ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={handleSyncNumber}
+              disabled={syncingNumber || !agent.elevenlabsAgentId}
+              className="rounded-full px-4 py-2 text-sm font-medium btn-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {syncingNumber ? "Syncing Number..." : "Sync Number"}
+            </button>
+            {!agent.elevenlabsAgentId ? (
+              <p className="text-xs text-zinc-500">
+                Save & sync this agent to ElevenLabs first.
+              </p>
+            ) : (
+              <p className="text-xs text-zinc-500">
+                Uses the first available number in your ElevenLabs pool.
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="text-xs text-emerald-700">
+            This agent has an active number assignment.
+          </p>
+        )}
       </div>
 
       {/* Voice */}

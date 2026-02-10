@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { fetchMutation, fetchQuery } from "convex/nextjs";
+import { ConvexHttpClient } from "convex/browser";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import Stripe from "stripe";
+import { syncWorkspacePhoneAssignment } from "@/lib/elevenlabsPhonePool";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+const billingWebhookSecret = process.env.BILLING_WEBHOOK_SECRET;
+const elevenlabsApiKey = process.env.ELEVENLABS_API_KEY;
 
 const planByPriceEnv = new Map<string, "starter" | "pro" | "growth">();
 const priceEntries: Array<[string | undefined, "starter" | "pro" | "growth"]> = [
@@ -120,5 +125,22 @@ export async function POST(req: NextRequest) {
     { token }
   );
 
-  return NextResponse.json({ success: true });
+  let phoneAssignment:
+    | {
+        action: "assigned" | "released" | "noop";
+      }
+    | undefined;
+
+  if (convexUrl && billingWebhookSecret && elevenlabsApiKey) {
+    const client = new ConvexHttpClient(convexUrl);
+    phoneAssignment = await syncWorkspacePhoneAssignment({
+      client,
+      workspaceId: workspace._id as Id<"workspaces">,
+      subscriptionStatus: subscription.status ?? "active",
+      elevenlabsApiKey,
+      billingWebhookSecret,
+    });
+  }
+
+  return NextResponse.json({ success: true, phoneAssignment });
 }
