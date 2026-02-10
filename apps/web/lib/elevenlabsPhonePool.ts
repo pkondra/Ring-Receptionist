@@ -33,6 +33,53 @@ const RELEASE_PHONE_STATUSES = new Set([
   "paused",
 ]);
 
+const UNASSIGNED_AGENT_MARKERS = new Set([
+  "no agent",
+  "none",
+  "unassigned",
+  "null",
+  "n/a",
+  "na",
+]);
+
+function normalizeAssignedAgentId(value: unknown) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (UNASSIGNED_AGENT_MARKERS.has(trimmed.toLowerCase())) return null;
+  return trimmed;
+}
+
+function extractPhoneRows(payload: unknown): unknown[] {
+  if (Array.isArray(payload)) return payload;
+  if (!payload || typeof payload !== "object") return [];
+
+  const record = payload as Record<string, unknown>;
+  const prioritized = [
+    record.phone_numbers,
+    record.phoneNumbers,
+    record.numbers,
+    record.items,
+    record.data,
+    record.results,
+  ];
+
+  for (const candidate of prioritized) {
+    if (Array.isArray(candidate)) return candidate;
+  }
+
+  // Fallback for nested API wrappers.
+  for (const value of Object.values(record)) {
+    if (Array.isArray(value)) return value;
+    if (value && typeof value === "object") {
+      const nested = extractPhoneRows(value);
+      if (nested.length > 0) return nested;
+    }
+  }
+
+  return [];
+}
+
 function normalizeElevenLabsPhone(row: unknown): ElevenLabsPhoneNumber | null {
   if (!row || typeof row !== "object") return null;
   const record = row as Record<string, unknown>;
@@ -72,8 +119,10 @@ function normalizeElevenLabsPhone(row: unknown): ElevenLabsPhoneNumber | null {
     record.agentId,
     nestedAssignedAgent?.agent_id,
     nestedAssignedAgent?.id,
+    nestedAssignedAgent?.name,
     nestedAgent?.agent_id,
     nestedAgent?.id,
+    nestedAgent?.name,
   ];
 
   const id = idCandidates.find(
@@ -88,10 +137,9 @@ function normalizeElevenLabsPhone(row: unknown): ElevenLabsPhoneNumber | null {
     ) ?? null;
 
   const assignedAgentId =
-    assignedAgentCandidates.find(
-      (value): value is string =>
-        typeof value === "string" && value.trim().length > 0
-    ) ?? null;
+    assignedAgentCandidates
+      .map(normalizeAssignedAgentId)
+      .find((value): value is string => Boolean(value)) ?? null;
 
   return { id, phoneNumber, assignedAgentId };
 }
@@ -112,12 +160,10 @@ async function listElevenLabsPhoneNumbers(apiKey: string) {
   }
 
   const payload = (await response.json()) as {
-    phone_numbers?: unknown[];
-    phoneNumbers?: unknown[];
-    numbers?: unknown[];
+    [key: string]: unknown;
   };
 
-  const rows = payload.phone_numbers ?? payload.phoneNumbers ?? payload.numbers ?? [];
+  const rows = extractPhoneRows(payload);
   return rows
     .map(normalizeElevenLabsPhone)
     .filter((value): value is ElevenLabsPhoneNumber => Boolean(value));
@@ -229,7 +275,9 @@ export async function assignAvailablePhoneToAgent({
   );
 
   if (!available || !available.phoneNumber) {
-    throw new Error("No unassigned ElevenLabs phone numbers available");
+    throw new Error(
+      `No unassigned ElevenLabs phone numbers available (found ${numbers.length} total)`
+    );
   }
 
   await assignElevenLabsPhoneNumberToAgent(
