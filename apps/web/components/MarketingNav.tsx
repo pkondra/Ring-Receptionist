@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -136,12 +136,14 @@ export default function MarketingNav() {
             </svg>
           </button>
 
-          <Link
-            href="/sign-in?redirect_url=/dashboard"
-            className="hidden sm:inline-flex rounded-full px-4 py-2.5 text-sm font-medium border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 transition-colors"
-          >
-            Login
-          </Link>
+          <SignInButton mode="modal" forceRedirectUrl="/dashboard">
+            <button
+              type="button"
+              className="hidden sm:inline-flex rounded-full px-4 py-2.5 text-sm font-medium border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 transition-colors"
+            >
+              Login
+            </button>
+          </SignInButton>
 
           <SignedOut>
             <Link
@@ -150,12 +152,14 @@ export default function MarketingNav() {
             >
               Get Started
             </Link>
-            <Link
-              href="/sign-in?redirect_url=/dashboard"
-              className="sm:hidden rounded-full px-4 py-2.5 text-sm font-medium border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 transition-colors"
-            >
-              Login
-            </Link>
+            <SignInButton mode="modal" forceRedirectUrl="/dashboard">
+              <button
+                type="button"
+                className="sm:hidden rounded-full px-4 py-2.5 text-sm font-medium border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 transition-colors"
+              >
+                Login
+              </button>
+            </SignInButton>
           </SignedOut>
           <SignedIn>
             <Link
@@ -236,13 +240,15 @@ export default function MarketingNav() {
             </Link>
             <SignedOut>
               <div className="pt-2 flex flex-col gap-2">
-                <Link
-                  href="/sign-in?redirect_url=/dashboard"
-                  className="rounded-full px-4 py-2.5 text-sm font-medium border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 transition-colors text-center"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Login
-                </Link>
+                <SignInButton mode="modal" forceRedirectUrl="/dashboard">
+                  <button
+                    type="button"
+                    className="rounded-full px-4 py-2.5 text-sm font-medium border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 transition-colors text-center"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Login
+                  </button>
+                </SignInButton>
                 <Link
                   href="/get-started"
                   className="rounded-full px-4 py-2.5 text-sm font-medium bg-zinc-900 text-white hover:bg-black transition-colors text-center"
