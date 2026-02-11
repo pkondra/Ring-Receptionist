@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 import { servicePages } from "@/lib/servicePages";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://theringreceiptionsit.com";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://ringreceptionist.com";
 
   const routes = [
     {
