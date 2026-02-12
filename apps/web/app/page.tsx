@@ -304,7 +304,7 @@ export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [websiteInput, setWebsiteInput] = useState("");
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://The Ring Receptions";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://ringreceptionist.com";
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -390,7 +390,7 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="mt-10 text-5xl md:text-6xl lg:text-7xl font-semibold text-zinc-900 font-display leading-[1.1] tracking-tight"
             >
-              The Ring Receptions
+              Ring Receptionist
               <br />
               <span className="text-emerald-600">
                 Never Miss a Call. Turn Every Ring Into a Lead.
@@ -855,7 +855,7 @@ export default function Home() {
                 </div>
                 <div className="p-5 text-center bg-emerald-600 text-white">
                   <div className="text-xs text-emerald-100 uppercase tracking-wider">AI-Powered</div>
-                  <div className="font-semibold mt-1">The Ring Receptions</div>
+                  <div className="font-semibold mt-1">Ring Receptionist</div>
                 </div>
               </div>
               {/* Table Body */}
@@ -1150,7 +1150,7 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                   </svg>
                 </div>
-                <span className="text-lg font-semibold">The Ring Receptions</span>
+                <span className="text-lg font-semibold">Ring Receptionist</span>
               </div>
               <p className="text-sm text-zinc-400 max-w-sm leading-relaxed">
                 AI-powered phone answering designed for service businesses. Capture every lead, handle emergencies, grow your operation.
@@ -1206,7 +1206,7 @@ export default function Home() {
           <div className="mt-14 pt-8 border-t border-zinc-800/80">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="text-sm text-zinc-500">
-                © 2026 The Ring Receptions. All rights reserved.
+                © 2026 Ring Receptionist. All rights reserved.
               </div>
               <div className="flex flex-wrap justify-center gap-6 text-sm text-zinc-500">
                 <span className="flex items-center gap-2">
