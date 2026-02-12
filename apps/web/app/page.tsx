@@ -469,15 +469,6 @@ export default function Home() {
             >
               <SignedOut>
                 <Link
-                  href="/get-started"
-                  className="group inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-base font-semibold bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-900/20 transition-all hover:shadow-xl hover:shadow-zinc-900/25"
-                >
-                  Get Started
-                  <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </Link>
-                <Link
                   href="/pricing"
                   className="inline-flex items-center justify-center gap-2.5 rounded-full px-8 py-4 text-base font-semibold bg-white border border-zinc-200 text-zinc-800 hover:bg-zinc-50 hover:border-zinc-300 shadow-sm transition-all"
                 >
