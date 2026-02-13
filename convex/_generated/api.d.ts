@@ -8,37 +8,13 @@
  * @module
  */
 
-import type * as agentConfigs from "../agentConfigs.js";
-import type * as appointments from "../appointments.js";
-import type * as billing from "../billing.js";
-import type * as billingWebhook from "../billingWebhook.js";
-import type * as chatMessages from "../chatMessages.js";
-import type * as chatSessions from "../chatSessions.js";
-import type * as constants from "../constants.js";
-import type * as knowledgeEntries from "../knowledgeEntries.js";
-import type * as users from "../users.js";
-import type * as workspaceKnowledgeEntries from "../workspaceKnowledgeEntries.js";
-import type * as workspaces from "../workspaces.js";
-
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
 } from "convex/server";
 
-declare const fullApi: ApiFromModules<{
-  agentConfigs: typeof agentConfigs;
-  appointments: typeof appointments;
-  billing: typeof billing;
-  billingWebhook: typeof billingWebhook;
-  chatMessages: typeof chatMessages;
-  chatSessions: typeof chatSessions;
-  constants: typeof constants;
-  knowledgeEntries: typeof knowledgeEntries;
-  users: typeof users;
-  workspaceKnowledgeEntries: typeof workspaceKnowledgeEntries;
-  workspaces: typeof workspaces;
-}>;
+declare const fullApi: ApiFromModules<{}>;
 
 /**
  * A utility for referencing Convex functions in your app's public API.
@@ -48,10 +24,7 @@ declare const fullApi: ApiFromModules<{
  * const myFunctionReference = api.myModule.myFunction;
  * ```
  */
-export declare const api: FilterApi<
-  typeof fullApi,
-  FunctionReference<any, "public">
->;
+export declare const api: any;
 
 /**
  * A utility for referencing Convex functions in your app's internal API.

@@ -494,7 +494,7 @@ export async function syncWorkspacePhoneAssignment({
     )
   );
   for (const phoneNumberId of assignedIds) {
-    await unassignElevenLabsPhoneNumber(elevenlabsApiKey, phoneNumberId);
+    await unassignElevenLabsPhoneNumber(elevenlabsApiKey, String(phoneNumberId));
   }
 
   await client.mutation(api.billingWebhook.clearWorkspacePhoneAssignmentsFromWebhook, {

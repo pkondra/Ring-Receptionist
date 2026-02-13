@@ -43,7 +43,7 @@ export default function AppointmentsPage() {
 
   const rows = useMemo(() => {
     if (!appointments) return [];
-    return appointments.map((appointment) => ({
+    return appointments.map((appointment: Record<string, unknown>) => ({
       id: appointment._id,
       agentName: appointment.agentName,
       businessName: appointment.businessName,

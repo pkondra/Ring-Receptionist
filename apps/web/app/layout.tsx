@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Spline_Sans, Geist_Mono } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
+import { ClerkProvider, SignIn, SignUp } from "@clerk/nextjs";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
 import "./globals.css";
 
@@ -111,7 +111,11 @@ export default function RootLayout({
         className={`${splineSans.variable} ${fraunces.variable} ${geistMono.variable} antialiased`}
       >
         <ClerkProvider>
-          <ConvexClientProvider>{children}</ConvexClientProvider>
+          <ConvexClientProvider>
+            {children}
+            <SignIn routing="hash" forceRedirectUrl="/dashboard" />
+            <SignUp routing="hash" forceRedirectUrl="/dashboard" />
+          </ConvexClientProvider>
         </ClerkProvider>
       </body>
     </html>
