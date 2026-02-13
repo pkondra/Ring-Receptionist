@@ -6,6 +6,36 @@ import { api } from "@convex/_generated/api";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
+type AppointmentStatus = "scheduled" | "needs_followup";
+
+type AppointmentRow = {
+  id: string;
+  agentName: string;
+  businessName: string;
+  status: AppointmentStatus;
+  scheduledAt?: number;
+  scheduledForText?: string;
+  contactName?: string;
+  phone?: string;
+  address?: string;
+  reason?: string;
+  notes?: string;
+  summary?: string;
+  createdAt?: number;
+};
+
+function optionalString(value: unknown) {
+  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+}
+
+function optionalNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function parseStatus(value: unknown): AppointmentStatus {
+  return value === "scheduled" ? "scheduled" : "needs_followup";
+}
+
 function formatDate(timestamp?: number) {
   if (!timestamp) return "Needs scheduling";
   return new Date(timestamp).toLocaleString(undefined, {
@@ -42,22 +72,28 @@ export default function AppointmentsPage() {
   );
 
   const rows = useMemo(() => {
-    if (!appointments) return [];
-    return appointments.map((appointment: Record<string, unknown>) => ({
-      id: appointment._id,
-      agentName: appointment.agentName,
-      businessName: appointment.businessName,
-      status: appointment.status,
-      scheduledAt: appointment.scheduledAt,
-      scheduledForText: appointment.scheduledForText,
-      contactName: appointment.contactName,
-      phone: appointment.phone,
-      address: appointment.address,
-      reason: appointment.reason,
-      notes: appointment.notes,
-      summary: appointment.summary,
-      createdAt: appointment.createdAt,
-    }));
+    if (!Array.isArray(appointments)) return [];
+
+    return appointments.map((appointment, index) => {
+      const row = appointment as Record<string, unknown>;
+      const id = optionalString(row._id) ?? `appointment-${index}`;
+
+      return {
+        id,
+        agentName: optionalString(row.agentName) ?? "Unknown Agent",
+        businessName: optionalString(row.businessName) ?? "",
+        status: parseStatus(row.status),
+        scheduledAt: optionalNumber(row.scheduledAt),
+        scheduledForText: optionalString(row.scheduledForText),
+        contactName: optionalString(row.contactName),
+        phone: optionalString(row.phone),
+        address: optionalString(row.address),
+        reason: optionalString(row.reason),
+        notes: optionalString(row.notes),
+        summary: optionalString(row.summary),
+        createdAt: optionalNumber(row.createdAt),
+      } satisfies AppointmentRow;
+    });
   }, [appointments]);
 
   const scheduledCount = rows.filter(r => r.status === "scheduled").length;

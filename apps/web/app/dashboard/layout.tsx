@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { UserButton } from "@clerk/nextjs";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { api } from "@convex/_generated/api";
 import DashboardNav from "@/components/DashboardNav";
 import Link from "next/link";
@@ -25,7 +25,6 @@ export default function DashboardLayout({
 }) {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [setupComplete, setSetupComplete] = useState(false);
   const [welcomeChecked, setWelcomeChecked] = useState(false);
   const billingRecoveryAttemptedRef = useRef(false);
@@ -58,15 +57,16 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
     const hasCheckoutSuccess =
-      searchParams.get("success") === "1" && Boolean(searchParams.get("session_id"));
+      params.get("success") === "1" && Boolean(params.get("session_id"));
     if (hasCheckoutSuccess) {
       window.sessionStorage.setItem(
         CHECKOUT_GRACE_SESSION_KEY,
         `${Date.now()}`
       );
     }
-  }, [searchParams]);
+  }, []);
 
   useEffect(() => {
     if (isLoading) return;
@@ -78,8 +78,12 @@ export default function DashboardLayout({
 
     if (workspace == null || billingSummary === undefined) return;
 
+    const params =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search)
+        : null;
     const hasCheckoutSuccessParam =
-      searchParams.get("success") === "1" && Boolean(searchParams.get("session_id"));
+      params?.get("success") === "1" && Boolean(params?.get("session_id"));
 
     let hasRecentCheckout = hasCheckoutSuccessParam;
     if (!hasRecentCheckout && typeof window !== "undefined") {
@@ -137,7 +141,7 @@ export default function DashboardLayout({
 
       router.replace("/pricing");
     }
-  }, [isAuthenticated, isLoading, workspace, billingSummary, router, searchParams]);
+  }, [isAuthenticated, isLoading, workspace, billingSummary, router]);
 
   if (
     isLoading ||
