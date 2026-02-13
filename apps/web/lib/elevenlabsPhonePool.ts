@@ -376,11 +376,20 @@ export async function assignAvailablePhoneToAgent({
   const available = numbers.find(
     (number) =>
       !number.assignedAgentId &&
-      !alreadyTrackedIds.has(number.id) &&
-      Boolean(number.phoneNumber)
+      Boolean(number.phoneNumber) &&
+      !alreadyTrackedIds.has(number.id)
   );
 
-  if (!available || !available.phoneNumber) {
+  const reclaimable = numbers.find(
+    (number) =>
+      !number.assignedAgentId &&
+      Boolean(number.phoneNumber) &&
+      alreadyTrackedIds.has(number.id)
+  );
+
+  const target = available ?? reclaimable;
+
+  if (!target || !target.phoneNumber) {
     throw new Error(
       `No unassigned ElevenLabs phone numbers available (found ${numbers.length} total)`
     );
@@ -388,7 +397,7 @@ export async function assignAvailablePhoneToAgent({
 
   await assignElevenLabsPhoneNumberToAgent(
     elevenlabsApiKey,
-    available.id,
+    target.id,
     elevenlabsAgentId
   );
 
@@ -396,15 +405,15 @@ export async function assignAvailablePhoneToAgent({
     secret: billingWebhookSecret,
     workspaceId,
     agentConfigId,
-    assignedPhoneNumber: available.phoneNumber,
-    elevenlabsPhoneNumberId: available.id,
+    assignedPhoneNumber: target.phoneNumber,
+    elevenlabsPhoneNumberId: target.id,
   });
 
   return {
     action: "assigned" as const,
     reused: false,
-    phoneNumber: available.phoneNumber,
-    phoneNumberId: available.id,
+    phoneNumber: target.phoneNumber,
+    phoneNumberId: target.id,
   };
 }
 
