@@ -35,6 +35,7 @@ const RELEASE_PHONE_STATUSES = new Set([
 
 const UNASSIGNED_AGENT_MARKERS = new Set([
   "no agent",
+  "no agent assigned",
   "none",
   "unassigned",
   "null",
@@ -42,9 +43,24 @@ const UNASSIGNED_AGENT_MARKERS = new Set([
   "na",
 ]);
 
+function asRecord(value: unknown) {
+  if (!value || typeof value !== "object") return null;
+  return value as Record<string, unknown>;
+}
+
+function normalizeString(value: unknown) {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return `${value}`;
+  }
+  return null;
+}
+
 function normalizeAssignedAgentId(value: unknown) {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
+  const trimmed = normalizeString(value);
   if (!trimmed) return null;
   if (UNASSIGNED_AGENT_MARKERS.has(trimmed.toLowerCase())) return null;
   return trimmed;
@@ -52,9 +68,8 @@ function normalizeAssignedAgentId(value: unknown) {
 
 function extractPhoneRows(payload: unknown): unknown[] {
   if (Array.isArray(payload)) return payload;
-  if (!payload || typeof payload !== "object") return [];
-
-  const record = payload as Record<string, unknown>;
+  const record = asRecord(payload);
+  if (!record) return [];
   const prioritized = [
     record.phone_numbers,
     record.phoneNumbers,
@@ -64,70 +79,134 @@ function extractPhoneRows(payload: unknown): unknown[] {
     record.results,
   ];
 
-  for (const candidate of prioritized) {
-    if (Array.isArray(candidate)) return candidate;
-  }
+  const collected: unknown[] = [];
 
-  // Fallback for nested API wrappers.
-  for (const value of Object.values(record)) {
-    if (Array.isArray(value)) return value;
-    if (value && typeof value === "object") {
-      const nested = extractPhoneRows(value);
-      if (nested.length > 0) return nested;
+  for (const candidate of prioritized) {
+    if (Array.isArray(candidate)) {
+      collected.push(...candidate);
     }
   }
 
-  return [];
+  if (collected.length > 0) {
+    return collected;
+  }
+
+  // Fallback for nested API wrappers and unknown response shapes.
+  for (const value of Object.values(record)) {
+    if (Array.isArray(value)) {
+      collected.push(...value);
+      continue;
+    }
+    if (value && typeof value === "object") {
+      const nested = extractPhoneRows(value);
+      if (nested.length > 0) collected.push(...nested);
+    }
+  }
+
+  return collected;
+}
+
+function getNextCursor(payload: unknown) {
+  const record = asRecord(payload);
+  if (!record) return null;
+
+  const page = asRecord(record.page);
+  const meta = asRecord(record.meta);
+  const pagination = asRecord(record.pagination);
+
+  const candidates = [
+    record.next_cursor,
+    record.nextCursor,
+    record.cursor,
+    page?.next_cursor,
+    page?.nextCursor,
+    meta?.next_cursor,
+    meta?.nextCursor,
+    pagination?.next_cursor,
+    pagination?.nextCursor,
+  ];
+
+  for (const candidate of candidates) {
+    const value = normalizeString(candidate);
+    if (value) return value;
+  }
+  return null;
 }
 
 function normalizeElevenLabsPhone(row: unknown): ElevenLabsPhoneNumber | null {
-  if (!row || typeof row !== "object") return null;
-  const record = row as Record<string, unknown>;
+  const record = asRecord(row);
+  if (!record) return null;
 
-  const nestedAssignedAgent =
-    record.assigned_agent && typeof record.assigned_agent === "object"
-      ? (record.assigned_agent as Record<string, unknown>)
-      : null;
-  const nestedAgent =
-    record.agent && typeof record.agent === "object"
-      ? (record.agent as Record<string, unknown>)
-      : null;
-  const nestedPhoneObject =
-    record.phone && typeof record.phone === "object"
-      ? (record.phone as Record<string, unknown>)
-      : null;
+  const nestedAssignedAgent = asRecord(record.assigned_agent);
+  const nestedAgent = asRecord(record.agent);
+  const nestedPhoneObjects = [
+    asRecord(record.phone),
+    asRecord(record.phone_number),
+    asRecord(record.phoneNumber),
+    asRecord(record.twilio),
+    asRecord(record.sip_trunk),
+    asRecord(record.sipTrunk),
+  ].filter((value): value is Record<string, unknown> => Boolean(value));
 
   const idCandidates = [
     record.phone_number_id,
     record.phoneNumberId,
+    record.phone_sid,
+    record.phoneSid,
+    record.twilio_phone_number_sid,
+    record.twilioPhoneNumberSid,
     record.id,
-    nestedPhoneObject?.id,
+    ...nestedPhoneObjects.flatMap((phoneRecord) => [
+      phoneRecord.id,
+      phoneRecord.phone_number_id,
+      phoneRecord.phoneNumberId,
+      phoneRecord.phone_sid,
+      phoneRecord.phoneSid,
+      phoneRecord.twilio_phone_number_sid,
+      phoneRecord.twilioPhoneNumberSid,
+      phoneRecord.sid,
+    ]),
   ];
   const phoneCandidates = [
     record.phone_number,
     record.phoneNumber,
     record.number,
+    record.phone,
     record.e164_phone_number,
     record.e164PhoneNumber,
     record.display_phone_number,
     record.displayPhoneNumber,
-    nestedPhoneObject?.phone_number,
-    nestedPhoneObject?.e164_phone_number,
+    ...nestedPhoneObjects.flatMap((phoneRecord) => [
+      phoneRecord.phone_number,
+      phoneRecord.phoneNumber,
+      phoneRecord.number,
+      phoneRecord.phone,
+      phoneRecord.e164_phone_number,
+      phoneRecord.e164PhoneNumber,
+      phoneRecord.display_phone_number,
+      phoneRecord.displayPhoneNumber,
+    ]),
   ];
   const assignedAgentCandidates = [
+    record.assigned_agent_id,
+    record.assignedAgentId,
     record.agent_id,
     record.agentId,
+    record.agent,
     nestedAssignedAgent?.agent_id,
+    nestedAssignedAgent?.agentId,
     nestedAssignedAgent?.id,
     nestedAssignedAgent?.name,
     nestedAgent?.agent_id,
+    nestedAgent?.agentId,
     nestedAgent?.id,
     nestedAgent?.name,
   ];
 
-  const id = idCandidates.find(
-    (value): value is string => typeof value === "string" && value.length > 0
-  );
+  const id =
+    idCandidates
+      .map(normalizeString)
+      .find((value): value is string => Boolean(value)) ?? null;
   if (!id) return null;
 
   const phoneNumber =
@@ -145,28 +224,55 @@ function normalizeElevenLabsPhone(row: unknown): ElevenLabsPhoneNumber | null {
 }
 
 async function listElevenLabsPhoneNumbers(apiKey: string) {
-  const response = await fetch("https://api.elevenlabs.io/v1/convai/phone-numbers", {
-    headers: {
-      "xi-api-key": apiKey,
-    },
-    cache: "no-store",
-  });
+  const parsedNumbers = new Map<string, ElevenLabsPhoneNumber>();
+  const maxPages = 10;
+  let cursor: string | null = null;
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to list ElevenLabs phone numbers: ${errorText || response.status}`
+  for (let page = 0; page < maxPages; page += 1) {
+    const url = new URL("https://api.elevenlabs.io/v1/convai/phone-numbers");
+    if (cursor) {
+      url.searchParams.set("cursor", cursor);
+    }
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        "xi-api-key": apiKey,
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Failed to list ElevenLabs phone numbers: ${errorText || response.status}`
+      );
+    }
+
+    const payload = (await response.json()) as {
+      [key: string]: unknown;
+    };
+
+    const rows = extractPhoneRows(payload);
+    for (const row of rows) {
+      const normalized = normalizeElevenLabsPhone(row);
+      if (normalized) {
+        parsedNumbers.set(normalized.id, normalized);
+      }
+    }
+
+    const nextCursor = getNextCursor(payload);
+    if (!nextCursor || nextCursor === cursor) break;
+    cursor = nextCursor;
+  }
+
+  const numbers = Array.from(parsedNumbers.values());
+  if (numbers.length === 0) {
+    console.warn(
+      "[elevenlabsPhonePool] Parsed zero phone numbers from ElevenLabs response."
     );
   }
 
-  const payload = (await response.json()) as {
-    [key: string]: unknown;
-  };
-
-  const rows = extractPhoneRows(payload);
-  return rows
-    .map(normalizeElevenLabsPhone)
-    .filter((value): value is ElevenLabsPhoneNumber => Boolean(value));
+  return numbers;
 }
 
 async function patchElevenLabsPhoneAssignment(
@@ -370,7 +476,14 @@ export async function syncWorkspacePhoneAssignment({
     };
   }
 
-  const assignedIds = Array.from(new Set(context.assignedPhoneNumberIds ?? []));
+  const assignedIds = Array.from(
+    new Set(
+      (context.assignedPhoneNumberIds ?? []).filter(
+        (value): value is string =>
+          typeof value === "string" && value.trim().length > 0
+      )
+    )
+  );
   for (const phoneNumberId of assignedIds) {
     await unassignElevenLabsPhoneNumber(elevenlabsApiKey, phoneNumberId);
   }

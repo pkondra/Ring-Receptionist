@@ -104,14 +104,23 @@ export async function POST(req: NextRequest) {
         : "Phone number assigned successfully",
     });
   } catch (error) {
+    let errorMessage =
+      error instanceof Error ? error.message : "Failed to sync phone number";
+    const status = errorMessage.includes(
+      "No unassigned ElevenLabs phone numbers available"
+    )
+      ? 409
+      : 502;
+    if (status === 409 && errorMessage.includes("(found 0 total)")) {
+      errorMessage =
+        "No phone numbers were returned by your ElevenLabs phone-number pool. Add/import a number in ElevenLabs first, then retry.";
+    }
+
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to sync phone number",
+        error: errorMessage,
       },
-      { status: 502 }
+      { status }
     );
   }
 }
