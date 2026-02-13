@@ -84,14 +84,14 @@ export default function AgentSettingsPage() {
       setElevenlabsPhoneNumberId(agent.elevenlabsPhoneNumberId ?? "");
       setVoiceId(agent.voiceId ?? DEFAULT_VOICE_ID);
       setQualificationGoals(
-        agent.qualificationGoals.map((g) => ({
+        agent.qualificationGoals.map((g: { key: string; label: string; required: boolean }) => ({
           key: g.key,
           label: g.label,
           required: g.required,
         }))
       );
       setEmergencyProtocol({
-        triggers: agent.emergencyProtocol.triggers.map((t) => ({
+        triggers: agent.emergencyProtocol.triggers.map((t: { keyword: string; action: string }) => ({
           keyword: t.keyword,
           action: t.action as EmergencyProtocol["triggers"][number]["action"],
         })),

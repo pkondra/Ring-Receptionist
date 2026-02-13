@@ -36,7 +36,7 @@ export default function AgentsListPage() {
     return a.isDefault ? -1 : 1;
   });
 
-  const activeCount = agents.filter(a => a.elevenlabsAgentId).length;
+  const activeCount = agents.filter((a: { elevenlabsAgentId?: string }) => a.elevenlabsAgentId).length;
 
   return (
     <div className="space-y-8 pb-8">
