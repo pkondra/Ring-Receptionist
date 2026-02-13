@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { UserButton } from "@clerk/nextjs";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
@@ -8,6 +8,15 @@ import { api } from "@convex/_generated/api";
 import DashboardNav from "@/components/DashboardNav";
 import Link from "next/link";
 import Image from "next/image";
+
+const CHECKOUT_GRACE_SESSION_KEY = "checkout_success_at";
+const CHECKOUT_GRACE_WINDOW_MS = 10 * 60 * 1000;
+const ACTIVE_OR_PENDING_SUBSCRIPTION_STATUSES = new Set([
+  "active",
+  "trialing",
+  "past_due",
+  "incomplete",
+]);
 
 export default function DashboardLayout({
   children,
@@ -18,6 +27,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const [setupComplete, setSetupComplete] = useState(false);
   const [welcomeChecked, setWelcomeChecked] = useState(false);
+  const billingRecoveryAttemptedRef = useRef(false);
 
   const ensureAccountSetup = useMutation(api.users.ensureAccountSetup);
   const workspace = useQuery(
@@ -46,27 +56,97 @@ export default function DashboardLayout({
   }, [isAuthenticated, setupComplete, welcomeChecked]);
 
   useEffect(() => {
-    if (isLoading) return;
-    const params =
-      typeof window !== "undefined"
-        ? new URLSearchParams(window.location.search)
-        : null;
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
     const hasCheckoutSuccess =
-      params?.get("success") === "1" && params?.get("session_id");
+      params.get("success") === "1" && Boolean(params.get("session_id"));
+    if (hasCheckoutSuccess) {
+      window.sessionStorage.setItem(
+        CHECKOUT_GRACE_SESSION_KEY,
+        `${Date.now()}`
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isLoading) return;
 
     if (!isAuthenticated) {
       router.replace("/pricing");
       return;
     }
 
-    if (billingSummary === undefined) return;
+    if (workspace == null || billingSummary === undefined) return;
 
-    if (!billingSummary?.plan && !hasCheckoutSuccess) {
+    const params =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search)
+        : null;
+    const hasCheckoutSuccessParam =
+      params?.get("success") === "1" && Boolean(params?.get("session_id"));
+
+    let hasRecentCheckout = hasCheckoutSuccessParam;
+    if (!hasRecentCheckout && typeof window !== "undefined") {
+      const lastCheckoutAtRaw = window.sessionStorage.getItem(
+        CHECKOUT_GRACE_SESSION_KEY
+      );
+      const lastCheckoutAt = Number(lastCheckoutAtRaw ?? 0);
+      if (
+        Number.isFinite(lastCheckoutAt) &&
+        lastCheckoutAt > 0 &&
+        Date.now() - lastCheckoutAt < CHECKOUT_GRACE_WINDOW_MS
+      ) {
+        hasRecentCheckout = true;
+      }
+    }
+
+    const normalizedStatus = (workspace.subscriptionStatus ?? "")
+      .toString()
+      .toLowerCase();
+    const hasActiveOrPendingSubscription =
+      ACTIVE_OR_PENDING_SUBSCRIPTION_STATUSES.has(normalizedStatus) ||
+      Boolean(workspace.stripeSubscriptionId);
+
+    if (
+      !billingSummary?.plan &&
+      !hasRecentCheckout &&
+      !hasActiveOrPendingSubscription
+    ) {
+      const hasBillingRelationship = Boolean(
+        workspace.stripeCustomerId || workspace.stripeSubscriptionId
+      );
+
+      if (hasBillingRelationship && !billingRecoveryAttemptedRef.current) {
+        billingRecoveryAttemptedRef.current = true;
+        void fetch("/api/stripe/sync-subscription", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        })
+          .then(async (res) => {
+            if (!res.ok) {
+              const payload = await res.json().catch(() => ({}));
+              throw new Error(
+                payload.error || "Billing recovery sync failed"
+              );
+            }
+            router.refresh();
+          })
+          .catch((error) => {
+            console.error("Dashboard billing recovery sync failed:", error);
+            router.replace("/pricing");
+          });
+        return;
+      }
+
       router.replace("/pricing");
     }
-  }, [isAuthenticated, isLoading, billingSummary, router]);
+  }, [isAuthenticated, isLoading, workspace, billingSummary, router]);
 
-  if (isLoading || (isAuthenticated && billingSummary === undefined)) {
+  if (
+    isLoading ||
+    (isAuthenticated && (workspace == null || billingSummary === undefined))
+  ) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-sm text-zinc-500">Loading...</p>

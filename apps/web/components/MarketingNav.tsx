@@ -140,22 +140,22 @@ export default function MarketingNav() {
             <SignInButton mode="modal" forceRedirectUrl="/dashboard">
               <button
                 type="button"
-                className="hidden sm:inline-flex rounded-full px-4 py-2.5 text-sm font-medium border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 transition-colors"
+                className="inline-flex rounded-full px-4 py-2.5 text-sm font-medium border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 transition-colors"
               >
                 Login
               </button>
             </SignInButton>
             <Link
               href="/get-started"
-              className="hidden sm:inline-flex rounded-full px-5 py-2.5 text-sm font-medium bg-zinc-900 text-white hover:bg-black transition-colors"
+              className="inline-flex rounded-full px-5 py-2.5 text-sm font-medium bg-zinc-900 text-white hover:bg-black transition-colors"
             >
               Get Started
             </Link>
-            </SignedOut>
+          </SignedOut>
           <SignedIn>
             <Link
               href="/dashboard"
-              className="rounded-full px-5 py-2.5 text-sm font-medium bg-zinc-900 text-white hover:bg-black transition-colors"
+              className="inline-flex rounded-full px-5 py-2.5 text-sm font-medium bg-zinc-900 text-white hover:bg-black transition-colors"
             >
               Dashboard
             </Link>

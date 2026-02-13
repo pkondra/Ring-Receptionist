@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useConvexAuth, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
+
+const PENDING_CHECKOUT_SESSION_KEY = "pending_checkout_session_id";
 
 function formatDate(timestamp?: number) {
   if (!timestamp) return "—";
@@ -22,6 +24,7 @@ export default function BillingPage() {
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [showMessage, setShowMessage] = useState(true);
+  const syncedSessionRef = useRef<string | null>(null);
 
   const workspace = useQuery(
     api.workspaces.getMyWorkspace,
@@ -33,10 +36,26 @@ export default function BillingPage() {
   );
 
   useEffect(() => {
-    const sessionId = searchParams.get("session_id");
+    if (typeof window === "undefined" || syncing) return;
+    const sessionIdFromUrl = searchParams.get("session_id");
     const success = searchParams.get("success");
-    if (!sessionId || !success) return;
-    if (syncing) return;
+    const hasCheckoutSuccess =
+      success === "1" && Boolean(sessionIdFromUrl);
+
+    if (hasCheckoutSuccess && sessionIdFromUrl) {
+      window.sessionStorage.setItem(
+        PENDING_CHECKOUT_SESSION_KEY,
+        sessionIdFromUrl
+      );
+    }
+
+    const sessionId =
+      (hasCheckoutSuccess ? sessionIdFromUrl : null) ??
+      window.sessionStorage.getItem(PENDING_CHECKOUT_SESSION_KEY);
+
+    if (!sessionId) return;
+    if (syncedSessionRef.current === sessionId) return;
+    syncedSessionRef.current = sessionId;
 
     setSyncing(true);
     fetch("/api/stripe/sync-subscription", {
@@ -50,11 +69,13 @@ export default function BillingPage() {
           throw new Error(err.error || "Failed to sync subscription");
         }
         setSyncMessage("Subscription activated. Minutes updated.");
+        window.sessionStorage.removeItem(PENDING_CHECKOUT_SESSION_KEY);
       })
       .catch((err) => {
         setSyncMessage(
           err instanceof Error ? err.message : "Failed to sync subscription"
         );
+        syncedSessionRef.current = null;
       })
       .finally(() => setSyncing(false));
   }, [searchParams, syncing]);

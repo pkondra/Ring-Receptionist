@@ -459,6 +459,10 @@ export default function GetStartedPage() {
         workspaceId = result.workspaceId;
       }
 
+      if (!workspaceId) {
+        throw new Error("Workspace setup failed. Please try again.");
+      }
+
       await updateUserProfile({
         name: contact.name.trim() || undefined,
         email: contact.email.trim() || undefined,

@@ -28,6 +28,14 @@ for (const [priceId, plan] of priceEntries) {
   if (priceId) planByPriceEnv.set(priceId, plan);
 }
 
+function getWorkspaceIdFromSubscription(subscription: Stripe.Subscription) {
+  return (
+    subscription.metadata?.workspaceId ??
+    subscription.items.data[0]?.metadata?.workspaceId ??
+    null
+  );
+}
+
 export async function POST(req: NextRequest) {
   if (!stripeSecretKey) {
     return NextResponse.json(
@@ -42,47 +50,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const body: { sessionId?: string } = await req.json();
-  const sessionId = body.sessionId?.trim();
-  if (!sessionId) {
-    return NextResponse.json(
-      { error: "Missing sessionId" },
-      { status: 400 }
-    );
-  }
+  const body = (await req.json().catch(() => ({}))) as { sessionId?: string };
+  const requestedSessionId = body.sessionId?.trim();
 
   const stripe = new Stripe(stripeSecretKey, {
     apiVersion: "2025-02-24.acacia",
   });
-
-  const session = await stripe.checkout.sessions.retrieve(sessionId, {
-    expand: ["subscription"],
-  });
-
-  if (session.status !== "complete") {
-    return NextResponse.json(
-      { error: "Checkout session not complete" },
-      { status: 400 }
-    );
-  }
-
-  if (!session.subscription || typeof session.subscription === "string") {
-    return NextResponse.json(
-      { error: "Subscription not found on session" },
-      { status: 400 }
-    );
-  }
-
-  const subscription = session.subscription as Stripe.Subscription;
-  const price = subscription.items.data[0]?.price?.id;
-  const plan = price ? planByPriceEnv.get(price) : undefined;
-
-  if (!plan) {
-    return NextResponse.json(
-      { error: "Unknown plan for subscription" },
-      { status: 400 }
-    );
-  }
 
   const workspace = await fetchQuery(
     api.workspaces.getMyWorkspace,
@@ -94,15 +67,85 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
   }
 
-  const sessionWorkspaceId =
-    session.metadata?.workspaceId ??
-    subscription.metadata?.workspaceId ??
-    workspace._id;
+  let subscription: Stripe.Subscription | null = null;
+  let syncSource: "session" | "workspaceSubscription" | "customerLookup" = "session";
 
-  if (sessionWorkspaceId !== workspace._id) {
+  if (requestedSessionId) {
+    const session = await stripe.checkout.sessions.retrieve(requestedSessionId, {
+      expand: ["subscription"],
+    });
+
+    if (session.status !== "complete") {
+      return NextResponse.json(
+        { error: "Checkout session not complete" },
+        { status: 400 }
+      );
+    }
+
+    if (!session.subscription || typeof session.subscription === "string") {
+      return NextResponse.json(
+        { error: "Subscription not found on session" },
+        { status: 400 }
+      );
+    }
+
+    const sessionWorkspaceId =
+      session.metadata?.workspaceId ??
+      getWorkspaceIdFromSubscription(session.subscription as Stripe.Subscription) ??
+      workspace._id;
+
+    if (sessionWorkspaceId !== workspace._id) {
+      return NextResponse.json(
+        { error: "Session workspace mismatch" },
+        { status: 403 }
+      );
+    }
+
+    subscription = session.subscription as Stripe.Subscription;
+  } else if (workspace.stripeSubscriptionId) {
+    subscription = await stripe.subscriptions.retrieve(
+      workspace.stripeSubscriptionId
+    );
+    syncSource = "workspaceSubscription";
+  } else if (workspace.stripeCustomerId) {
+    const subscriptions = await stripe.subscriptions.list({
+      customer: workspace.stripeCustomerId,
+      status: "all",
+      limit: 10,
+    });
+
+    subscription =
+      subscriptions.data.find(
+        (candidate) =>
+          getWorkspaceIdFromSubscription(candidate) === workspace._id
+      ) ?? subscriptions.data[0] ?? null;
+    syncSource = "customerLookup";
+  }
+
+  if (!subscription) {
     return NextResponse.json(
-      { error: "Session workspace mismatch" },
+      {
+        error:
+          "Unable to find a Stripe subscription to sync. Retry checkout success flow or provide a sessionId.",
+      },
+      { status: 404 }
+    );
+  }
+
+  const linkedWorkspaceId = getWorkspaceIdFromSubscription(subscription);
+  if (linkedWorkspaceId && linkedWorkspaceId !== workspace._id) {
+    return NextResponse.json(
+      { error: "Subscription workspace mismatch" },
       { status: 403 }
+    );
+  }
+
+  const price = subscription.items.data[0]?.price?.id;
+  const plan = price ? planByPriceEnv.get(price) : undefined;
+  if (!plan) {
+    return NextResponse.json(
+      { error: "Unknown plan for subscription" },
+      { status: 400 }
     );
   }
 
@@ -130,17 +173,29 @@ export async function POST(req: NextRequest) {
         action: "assigned" | "released" | "noop";
       }
     | undefined;
+  let phoneAssignmentError: string | undefined;
 
   if (convexUrl && billingWebhookSecret && elevenlabsApiKey) {
-    const client = new ConvexHttpClient(convexUrl);
-    phoneAssignment = await syncWorkspacePhoneAssignment({
-      client,
-      workspaceId: workspace._id as Id<"workspaces">,
-      subscriptionStatus: subscription.status ?? "active",
-      elevenlabsApiKey,
-      billingWebhookSecret,
-    });
+    try {
+      const client = new ConvexHttpClient(convexUrl);
+      phoneAssignment = await syncWorkspacePhoneAssignment({
+        client,
+        workspaceId: workspace._id as Id<"workspaces">,
+        subscriptionStatus: subscription.status ?? "active",
+        elevenlabsApiKey,
+        billingWebhookSecret,
+      });
+    } catch (error) {
+      phoneAssignmentError =
+        error instanceof Error ? error.message : "Failed to sync phone assignment";
+      console.error("Phone assignment sync failed after subscription update:", error);
+    }
   }
 
-  return NextResponse.json({ success: true, phoneAssignment });
+  return NextResponse.json({
+    success: true,
+    syncSource,
+    phoneAssignment,
+    phoneAssignmentError,
+  });
 }
