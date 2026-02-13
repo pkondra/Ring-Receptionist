@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { useConvexAuth } from "convex/react";
 import { api } from "@convex/_generated/api";
@@ -8,6 +8,8 @@ import AgentStatusCard from "@/components/AgentStatusCard";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+
+const PENDING_CHECKOUT_SESSION_KEY = "pending_checkout_session_id";
 
 function formatDate(timestamp: number) {
   return new Date(timestamp).toLocaleString(undefined, {
@@ -38,6 +40,7 @@ export default function DashboardPage() {
   const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
   const [showMessage, setShowMessage] = useState(true);
   const searchParams = useSearchParams();
+  const syncedSessionRef = useRef<string | null>(null);
 
   const workspace = useQuery(
     api.workspaces.getMyWorkspace,
@@ -61,15 +64,39 @@ export default function DashboardPage() {
   );
 
   useEffect(() => {
-    const sessionId = searchParams.get("session_id");
+    if (typeof window === "undefined" || syncingCheckout) return;
+    const sessionIdFromUrl = searchParams.get("session_id");
     const success = searchParams.get("success");
-    if (!sessionId || !success || syncingCheckout) return;
+    const hasCheckoutSuccess =
+      success === "1" && Boolean(sessionIdFromUrl);
+
+    if (hasCheckoutSuccess && sessionIdFromUrl) {
+      window.sessionStorage.setItem(
+        PENDING_CHECKOUT_SESSION_KEY,
+        sessionIdFromUrl
+      );
+    }
+
+    const sessionId =
+      (hasCheckoutSuccess ? sessionIdFromUrl : null) ??
+      window.sessionStorage.getItem(PENDING_CHECKOUT_SESSION_KEY);
+    const hasBillingContext = Boolean(
+      workspace?.stripeCustomerId || workspace?.stripeSubscriptionId
+    );
+    const shouldUseFallbackSync =
+      !sessionId && hasBillingContext && !billingSummary?.plan;
+
+    if (!sessionId && !shouldUseFallbackSync) return;
+
+    const syncKey = sessionId ?? "__workspace_fallback__";
+    if (syncedSessionRef.current === syncKey) return;
+    syncedSessionRef.current = syncKey;
 
     setSyncingCheckout(true);
     fetch("/api/stripe/sync-subscription", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId }),
+      body: JSON.stringify(sessionId ? { sessionId } : {}),
     })
       .then(async (res) => {
         if (!res.ok) {
@@ -77,14 +104,18 @@ export default function DashboardPage() {
           throw new Error(err.error || "Failed to sync subscription");
         }
         setCheckoutMessage("Trial activated! Your minutes are ready to use.");
+        if (sessionId) {
+          window.sessionStorage.removeItem(PENDING_CHECKOUT_SESSION_KEY);
+        }
       })
       .catch((err) => {
         setCheckoutMessage(
           err instanceof Error ? err.message : "Failed to sync subscription"
         );
+        syncedSessionRef.current = null;
       })
       .finally(() => setSyncingCheckout(false));
-  }, [searchParams, syncingCheckout]);
+  }, [searchParams, syncingCheckout, workspace, billingSummary]);
 
   if (isLoading) {
     return (

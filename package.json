@@ -12,6 +12,7 @@
     "typecheck": "npm --prefix apps/web run typecheck"
   },
   "devDependencies": {
+    "@types/node": "^20.19.30",
     "convex": "^1.21.0",
     "typescript": "^5.7.0"
   },
